@@ -64,8 +64,11 @@ export default function HiddenMazeGame() {
   const [moves, setMoves] = useState(0)
   const [isWon, setIsWon] = useState(false)
   const [timeLeft, setTimeLeft] = useState(() => {
-    const saved = localStorage.getItem('game-timer-remaining')
-    return saved ? parseInt(saved) : 20 * 60
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('game-timer-remaining')
+      return saved ? parseInt(saved) : 20 * 60
+    }
+    return 20 * 60
   })
 
   useEffect(() => {
@@ -73,7 +76,9 @@ export default function HiddenMazeGame() {
       const interval = setInterval(() => {
         setTimeLeft(t => {
           const newTime = t - 1
-          localStorage.setItem('game-timer-remaining', newTime.toString())
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('game-timer-remaining', newTime.toString())
+          }
           return newTime
         })
       }, 1000)
@@ -183,7 +188,9 @@ export default function HiddenMazeGame() {
           // Reach exit with key - WIN!
           if (cell.type === 'exit' && hasKey) {
             setIsWon(true)
-            localStorage.setItem('hidden-maze-completed', JSON.stringify({ moves: moves + 1, time: 1200 - timeLeft }))
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('hidden-maze-completed', JSON.stringify({ moves: moves + 1, time: 1200 - timeLeft }))
+            }
             return { type: 'player' as CellType, discovered: true }
           }
           return { ...cell, type: 'player' as CellType, discovered: true }

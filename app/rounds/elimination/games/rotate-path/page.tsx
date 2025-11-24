@@ -89,8 +89,11 @@ export default function RotatePathGame() {
   const [moves, setMoves] = useState(0)
   const [isWon, setIsWon] = useState(false)
   const [timeLeft, setTimeLeft] = useState(() => {
-    const saved = localStorage.getItem('game-timer-remaining')
-    return saved ? parseInt(saved) : 20 * 60 // 20 minutes for all games combined
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('game-timer-remaining')
+      return saved ? parseInt(saved) : 20 * 60 // 20 minutes for all games combined
+    }
+    return 20 * 60
   })
 
   useEffect(() => {
@@ -98,7 +101,9 @@ export default function RotatePathGame() {
       const interval = setInterval(() => {
         setTimeLeft(t => {
           const newTime = t - 1
-          localStorage.setItem('game-timer-remaining', newTime.toString())
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('game-timer-remaining', newTime.toString())
+          }
           return newTime
         })
       }, 1000)
@@ -219,7 +224,9 @@ export default function RotatePathGame() {
     
     if (pathFound && !isWon) {
       setIsWon(true)
-      localStorage.setItem('rotate-path-completed', JSON.stringify({ moves, time: 1200 - timeLeft }))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('rotate-path-completed', JSON.stringify({ moves, time: 1200 - timeLeft }))
+      }
     }
     
     // Update visual path only for visited tiles

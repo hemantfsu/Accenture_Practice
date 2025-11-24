@@ -93,8 +93,11 @@ export default function ExpressionOrderingGame() {
   const [answers, setAnswers] = useState<Expression[][]>([])
   const [isComplete, setIsComplete] = useState(false)
   const [timeLeft, setTimeLeft] = useState(() => {
-    const saved = localStorage.getItem('game-timer-remaining')
-    return saved ? parseInt(saved) : 20 * 60
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('game-timer-remaining')
+      return saved ? parseInt(saved) : 20 * 60
+    }
+    return 20 * 60
   })
 
   useEffect(() => {
@@ -102,7 +105,9 @@ export default function ExpressionOrderingGame() {
       const interval = setInterval(() => {
         setTimeLeft(t => {
           const newTime = t - 1
-          localStorage.setItem('game-timer-remaining', newTime.toString())
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('game-timer-remaining', newTime.toString())
+          }
           return newTime
         })
       }, 1000)
@@ -147,11 +152,13 @@ export default function ExpressionOrderingGame() {
       })
       
       setIsComplete(true)
-      localStorage.setItem('expression-ordering-completed', JSON.stringify({ 
-        score: finalScore, 
-        total: questions.length,
-        time: 1200 - timeLeft 
-      }))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('expression-ordering-completed', JSON.stringify({ 
+          score: finalScore, 
+          total: questions.length,
+          time: 1200 - timeLeft 
+        }))
+      }
     }
   }
 
