@@ -177,9 +177,10 @@ const questions: Question[] = [
   {
     id: 19,
     category: 'MS Office',
-    difficulty: 'medium',
-    question: 'What does CONCATENATE function do?',
-    options: ['Joins multiple text strings', 'Splits text', 'Counts characters', 'Formats text'],
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'An analyst needs to extract the domain name from email addresses in column A (e.g., "john@company.com" → "company.com"). With 50,000 emails, which approach is most efficient?',
+    options: ['=MID(A1,FIND("@",A1)+1,LEN(A1)) formula combined with Flash Fill', 'Manually type each domain', 'Copy-paste one by one', 'Use Word to find and replace'],
     correctAnswer: 0
   },
   {
@@ -238,9 +239,10 @@ const questions: Question[] = [
   {
     id: 26,
     category: 'Cloud',
-    difficulty: 'medium',
-    question: 'What is a Virtual Private Cloud (VPC)?',
-    options: ['Isolated network section in cloud', 'Video processing center', 'Virtual password control', 'Visitor page counter'],
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A SaaS company experiences a sudden 10x traffic spike due to viral marketing. Their monolithic application starts failing. After migrating to microservices architecture, which cloud-native pattern would prevent cascading failures?',
+    options: ['Circuit Breaker pattern with health checks and fallbacks', 'Increasing server size', 'Adding more databases', 'Removing load balancer'],
     correctAnswer: 0
   },
   {
@@ -254,9 +256,10 @@ const questions: Question[] = [
   {
     id: 28,
     category: 'Cloud',
-    difficulty: 'easy',
-    question: 'What is object storage best suited for?',
-    options: ['Unstructured data like images and videos', 'Relational databases', 'Operating systems', 'RAM management'],
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A company needs 99.99% uptime SLA for their critical application. They deploy across 3 availability zones in one region. One zone fails completely. What architecture principle prevents total outage?',
+    options: ['Multi-AZ deployment with automatic failover and load distribution', 'Single zone with backup', 'Manual failover process', 'One server handles all traffic'],
     correctAnswer: 0
   },
   {
@@ -339,17 +342,19 @@ const questions: Question[] = [
   {
     id: 38,
     category: 'Networks',
-    difficulty: 'easy',
-    question: 'What does LAN stand for?',
-    options: ['Local Area Network', 'Large Access Node', 'Link Application Network', 'Load Allocation Network'],
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A network engineer needs to divide a 192.168.1.0/24 network into 8 equal subnets for different departments. Each department needs at least 30 hosts. What subnet mask should be used?',
+    options: ['255.255.255.224 (/27) - provides 8 subnets with 30 usable hosts each', '255.255.255.0 (/24)', '255.255.255.128 (/25)', '255.255.255.192 (/26)'],
     correctAnswer: 0
   },
   {
     id: 39,
     category: 'Networks',
-    difficulty: 'medium',
-    question: 'What is the primary function of a switch?',
-    options: ['Forward packets to specific devices using MAC addresses', 'Assign IP addresses', 'Provide wireless access', 'Encrypt data'],
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A company\'s network experiences intermittent packet loss between two offices connected via VPN. Ping shows 30% packet loss but bandwidth is fine. Traceroute reveals packets taking different routes. What is the likely issue?',
+    options: ['Asymmetric routing causing packets to drop at stateful firewalls', 'Internet speed is slow', 'DNS server down', 'Wrong IP address'],
     correctAnswer: 0
   },
   {
@@ -408,9 +413,10 @@ const questions: Question[] = [
   {
     id: 46,
     category: 'Cybersecurity',
-    difficulty: 'medium',
-    question: 'What is the principle of least privilege?',
-    options: ['Users get minimum access needed for their job', 'Everyone has admin rights', 'No passwords required', 'All data is public'],
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A security audit reveals that developers have production database credentials in their code repositories on GitHub. Attackers found these credentials and accessed customer data. What security principle was violated?',
+    options: ['Secrets management - credentials should never be in code, use environment variables/vault', 'Firewall configuration', 'User authentication', 'Network segmentation'],
     correctAnswer: 0
   },
   {
@@ -424,17 +430,19 @@ const questions: Question[] = [
   {
     id: 48,
     category: 'Cybersecurity',
-    difficulty: 'easy',
-    question: 'What does VPN stand for?',
-    options: ['Virtual Private Network', 'Verified Password Network', 'Visual Protocol Node', 'Variable Public Network'],
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A web application allows users to upload profile pictures. An attacker uploads a file named "profile.php" instead of an image, which executes malicious code on the server. What vulnerability is this?',
+    options: ['Unrestricted File Upload - should validate file type, size, and rename files', 'SQL Injection', 'XSS', 'CSRF'],
     correctAnswer: 0
   },
   {
     id: 49,
     category: 'Cybersecurity',
-    difficulty: 'medium',
-    question: 'What is the purpose of a firewall?',
-    options: ['Filter network traffic based on rules', 'Store passwords', 'Encrypt files', 'Scan for viruses only'],
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A company implements Zero Trust security. An employee with valid credentials tries to access the HR system from an unrecognized device in a foreign country at 3 AM (unusual time). What should happen?',
+    options: ['Access denied/additional verification required - Zero Trust verifies every access attempt', 'Automatic access granted', 'No monitoring needed', 'Only check credentials'],
     correctAnswer: 0
   },
   {
