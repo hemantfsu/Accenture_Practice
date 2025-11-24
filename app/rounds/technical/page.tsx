@@ -1,0 +1,889 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, Clock, CheckCircle, Code, Cloud, Network, Shield, FileSpreadsheet, CheckCircle2, Circle, AlertCircle } from 'lucide-react'
+
+interface Question {
+  id: number
+  category: string
+  question: string
+  options: string[]
+  correctAnswer: number
+  difficulty: 'easy' | 'medium' | 'hard'
+  isScenario?: boolean
+}
+
+// Technical questions (50 total - 10 per category)
+const questions: Question[] = [
+  // Pseudocode (10 questions)
+  {
+    id: 1,
+    category: 'Pseudocode',
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A developer is tasked with optimizing a search algorithm for a large dataset of 1 million sorted records. The current implementation uses linear search which takes too long. The team suggests implementing binary search instead. What would be the time complexity improvement?',
+    options: ['From O(n) to O(log n)', 'From O(n²) to O(n)', 'From O(log n) to O(1)', 'No improvement'],
+    correctAnswer: 0
+  },
+  {
+    id: 2,
+    category: 'Pseudocode',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'An online compiler needs to validate if brackets in user code are properly balanced: (), {}, []. For the input "({[()]})", which approach ensures correct validation in O(n) time?',
+    options: ['Stack-based matching with push/pop operations', 'Count opening and closing brackets separately', 'Use nested loops to compare each pair', 'Sort and then compare'],
+    correctAnswer: 0
+  },
+  {
+    id: 3,
+    category: 'Pseudocode',
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A banking system needs to process transactions in the exact order they are received, ensuring FIFO (First In First Out) behavior. Multiple ATMs are sending requests simultaneously. Which data structure would be most appropriate for this requirement and why?',
+    options: ['Queue - maintains insertion order', 'Stack - fast operations', 'Array - random access', 'Tree - sorted storage'],
+    correctAnswer: 0
+  },
+  {
+    id: 4,
+    category: 'Pseudocode',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'A video streaming platform implements an "Undo" feature for playlist edits. Users can undo up to 50 recent actions. Each undo operation must retrieve the most recent action in constant time. Which data structure best fits this requirement?',
+    options: ['Stack with O(1) push and pop', 'Queue with O(1) enqueue only', 'Array with O(n) search', 'Linked List with O(n) traversal'],
+    correctAnswer: 0
+  },
+  {
+    id: 5,
+    category: 'Pseudocode',
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A navigation app needs to find the shortest path between two cities considering real-time traffic on 500,000 road segments. Which algorithm provides optimal performance for single-source shortest path in a weighted graph?',
+    options: ['Dijkstra\'s Algorithm with min-heap', 'Depth-First Search (DFS)', 'Bubble Sort on distances', 'Linear search through all paths'],
+    correctAnswer: 0
+  },
+  {
+    id: 6,
+    category: 'Pseudocode',
+    difficulty: 'hard',
+    question: 'What is the space complexity of merge sort algorithm?',
+    options: ['O(n)', 'O(1)', 'O(log n)', 'O(n²)'],
+    correctAnswer: 0
+  },
+  {
+    id: 7,
+    category: 'Pseudocode',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'An e-commerce platform stores product IDs and needs to quickly check if a product exists in inventory. The system handles millions of queries per second. Which approach provides O(1) average lookup time?',
+    options: ['Hash Table', 'Binary Search Tree', 'Sorted Array', 'Linked List'],
+    correctAnswer: 0
+  },
+  {
+    id: 8,
+    category: 'Pseudocode',
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A cache system needs to evict the least recently used item when memory is full. The system must support get(key) and put(key, value) both in O(1) time. Which data structure combination achieves this for an LRU cache?',
+    options: ['Hash Map + Doubly Linked List', 'Array with linear search', 'Single Linked List only', 'Binary Search Tree'],
+    correctAnswer: 0
+  },
+  {
+    id: 9,
+    category: 'Pseudocode',
+    difficulty: 'hard',
+    question: 'What is the worst-case time complexity of QuickSort when the pivot selection is poor (e.g., always picking smallest element)?',
+    options: ['O(n²)', 'O(n log n)', 'O(n)', 'O(log n)'],
+    correctAnswer: 0
+  },
+  {
+    id: 10,
+    category: 'Pseudocode',
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A social media app needs to detect cycles in friend connections to prevent infinite loops in recommendation algorithms. The friend network has 10 million users represented as a directed graph. Which algorithm efficiently detects cycles?',
+    options: ['Depth-First Search (DFS) with visited and recursion stack tracking', 'Bubble Sort on user IDs', 'Linear Search through connections', 'Binary Search on friend lists'],
+    correctAnswer: 0
+  },
+
+  // MS Office (10 questions)
+  {
+    id: 11,
+    category: 'MS Office',
+    difficulty: 'easy',
+    question: 'Which Excel function calculates the average of a range?',
+    options: ['AVERAGE()', 'MEAN()', 'AVG()', 'SUM()/COUNT()'],
+    correctAnswer: 0
+  },
+  {
+    id: 12,
+    category: 'MS Office',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'A sales manager has a spreadsheet with 10,000 rows of customer data. She needs to find all customers from "New York" who made purchases over $5,000 in Q4 2024. Which Excel feature would be most efficient?',
+    options: ['Advanced Filter with multiple criteria', 'Manual scrolling', 'CTRL+F find', 'Sort by city only'],
+    correctAnswer: 0
+  },
+  {
+    id: 13,
+    category: 'MS Office',
+    difficulty: 'hard',
+    question: 'What does the Excel formula =VLOOKUP(A2, B:D, 3, FALSE) return?',
+    options: ['Value from 3rd column where A2 matches column B', 'Sum of 3 columns', '3rd row value', 'Boolean FALSE'],
+    correctAnswer: 0
+  },
+  {
+    id: 14,
+    category: 'MS Office',
+    difficulty: 'easy',
+    question: 'Which PowerPoint view shows all slides as thumbnails?',
+    options: ['Slide Sorter', 'Normal', 'Outline', 'Reading'],
+    correctAnswer: 0
+  },
+  {
+    id: 15,
+    category: 'MS Office',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'A team is collaborating on a Word document for a project proposal. Multiple people need to edit simultaneously and see changes in real-time. The document contains sensitive client information. Which feature combination is most appropriate?',
+    options: ['OneDrive sharing with Track Changes enabled', 'Email attachments', 'USB drive sharing', 'Print and scan'],
+    correctAnswer: 0
+  },
+  {
+    id: 16,
+    category: 'MS Office',
+    difficulty: 'medium',
+    question: 'What is a Pivot Table used for in Excel?',
+    options: ['Summarizing and analyzing large datasets', 'Creating charts', 'Formatting cells', 'Printing reports'],
+    correctAnswer: 0
+  },
+  {
+    id: 17,
+    category: 'MS Office',
+    difficulty: 'hard',
+    question: 'Which Excel function combines IF and OR conditions?',
+    options: ['=IF(OR(condition1, condition2), true, false)', '=OR(IF(...))', '=IFOR(...)', '=CONDITION(OR(...))'],
+    correctAnswer: 0
+  },
+  {
+    id: 18,
+    category: 'MS Office',
+    difficulty: 'easy',
+    question: 'How do you freeze the top row in Excel?',
+    options: ['View > Freeze Panes > Freeze Top Row', 'Format > Lock', 'Data > Freeze', 'Home > Pin'],
+    correctAnswer: 0
+  },
+  {
+    id: 19,
+    category: 'MS Office',
+    difficulty: 'medium',
+    question: 'What does CONCATENATE function do?',
+    options: ['Joins multiple text strings', 'Splits text', 'Counts characters', 'Formats text'],
+    correctAnswer: 0
+  },
+  {
+    id: 20,
+    category: 'MS Office',
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'An HR department maintains employee records in Excel with columns for Name, Department, Salary, and Join Date. They need to calculate the average salary for employees who joined after Jan 1, 2020, in the IT department. Which function is most appropriate?',
+    options: ['AVERAGEIFS()', 'AVERAGE()', 'SUMIF()', 'COUNTIF()'],
+    correctAnswer: 0
+  },
+
+  // Cloud (10 questions)
+  {
+    id: 21,
+    category: 'Cloud',
+    difficulty: 'easy',
+    question: 'Which of the following is NOT a cloud service model?',
+    options: ['DaaS (Desktop as a Service)', 'IaaS', 'PaaS', 'SaaS'],
+    correctAnswer: 0
+  },
+  {
+    id: 22,
+    category: 'Cloud',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'A startup is launching a web application and expects highly variable traffic - from 100 users during nights to 50,000 during peak hours. They want to minimize infrastructure costs while maintaining performance. Which cloud pricing model is most cost-effective?',
+    options: ['Auto-scaling with pay-per-use pricing', 'Reserved instances for 50K users', 'On-premise servers', 'Fixed monthly hosting'],
+    correctAnswer: 0
+  },
+  {
+    id: 23,
+    category: 'Cloud',
+    difficulty: 'hard',
+    question: 'What is the primary difference between vertical and horizontal scaling?',
+    options: ['Vertical adds more power to existing machine, horizontal adds more machines', 'Both are same', 'Vertical is for databases only', 'Horizontal is slower'],
+    correctAnswer: 0
+  },
+  {
+    id: 24,
+    category: 'Cloud',
+    difficulty: 'easy',
+    question: 'What does AWS stand for?',
+    options: ['Amazon Web Services', 'Automated Web System', 'Advanced Web Storage', 'Application Web Server'],
+    correctAnswer: 0
+  },
+  {
+    id: 25,
+    category: 'Cloud',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'A financial services company must ensure their customer data is stored only in European data centers due to GDPR compliance. They use a cloud provider with global infrastructure. Which cloud deployment model addresses this requirement?',
+    options: ['Region-specific deployment with data residency controls', 'Public cloud worldwide', 'Private on-premise only', 'Mobile-first cloud'],
+    correctAnswer: 0
+  },
+  {
+    id: 26,
+    category: 'Cloud',
+    difficulty: 'medium',
+    question: 'What is a Virtual Private Cloud (VPC)?',
+    options: ['Isolated network section in cloud', 'Video processing center', 'Virtual password control', 'Visitor page counter'],
+    correctAnswer: 0
+  },
+  {
+    id: 27,
+    category: 'Cloud',
+    difficulty: 'hard',
+    question: 'Which AWS service is used for serverless computing?',
+    options: ['Lambda', 'EC2', 'S3', 'RDS'],
+    correctAnswer: 0
+  },
+  {
+    id: 28,
+    category: 'Cloud',
+    difficulty: 'easy',
+    question: 'What is object storage best suited for?',
+    options: ['Unstructured data like images and videos', 'Relational databases', 'Operating systems', 'RAM management'],
+    correctAnswer: 0
+  },
+  {
+    id: 29,
+    category: 'Cloud',
+    difficulty: 'medium',
+    question: 'What does CDN stand for?',
+    options: ['Content Delivery Network', 'Central Data Node', 'Cloud Distribution Network', 'Cached Domain Name'],
+    correctAnswer: 0
+  },
+  {
+    id: 30,
+    category: 'Cloud',
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'An e-learning platform streams video lectures to students worldwide. Users in Asia experience buffering while US users have smooth playback. The videos are stored in a US data center. What is the most effective solution?',
+    options: ['Implement CDN with edge locations globally', 'Increase server capacity in US', 'Compress videos more', 'Limit Asian user access'],
+    correctAnswer: 0
+  },
+
+  // Networks (10 questions)
+  {
+    id: 31,
+    category: 'Networks',
+    difficulty: 'easy',
+    question: 'What layer of the OSI model does HTTP operate at?',
+    options: ['Application Layer (Layer 7)', 'Transport Layer', 'Network Layer', 'Session Layer'],
+    correctAnswer: 0
+  },
+  {
+    id: 32,
+    category: 'Networks',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'A company network has 200 employees and uses a single router. Users complain about slow internet during work hours. Network monitoring shows the router is handling 500+ simultaneous connections. What is the likely bottleneck and solution?',
+    options: ['Router capacity limit - upgrade to enterprise router or add load balancer', 'User computers are slow', 'Internet plan is fine', 'Firewall is blocking'],
+    correctAnswer: 0
+  },
+  {
+    id: 33,
+    category: 'Networks',
+    difficulty: 'hard',
+    question: 'What is the default subnet mask for a Class C network?',
+    options: ['255.255.255.0', '255.0.0.0', '255.255.0.0', '255.255.255.255'],
+    correctAnswer: 0
+  },
+  {
+    id: 34,
+    category: 'Networks',
+    difficulty: 'easy',
+    question: 'Which protocol is used to assign IP addresses automatically?',
+    options: ['DHCP', 'HTTP', 'FTP', 'SMTP'],
+    correctAnswer: 0
+  },
+  {
+    id: 35,
+    category: 'Networks',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'A remote employee cannot access the company VPN from a coffee shop, but their internet works fine for browsing. The IT team confirms VPN server is operational. What is the most likely cause?',
+    options: ['Coffee shop firewall blocking VPN ports (1194/443)', 'Employee password wrong', 'VPN server is down', 'Internet is too slow'],
+    correctAnswer: 0
+  },
+  {
+    id: 36,
+    category: 'Networks',
+    difficulty: 'medium',
+    question: 'What is the purpose of DNS?',
+    options: ['Translate domain names to IP addresses', 'Encrypt data', 'Route packets', 'Assign IP addresses'],
+    correctAnswer: 0
+  },
+  {
+    id: 37,
+    category: 'Networks',
+    difficulty: 'hard',
+    question: 'Which TCP flag is used to initiate a connection?',
+    options: ['SYN', 'ACK', 'FIN', 'RST'],
+    correctAnswer: 0
+  },
+  {
+    id: 38,
+    category: 'Networks',
+    difficulty: 'easy',
+    question: 'What does LAN stand for?',
+    options: ['Local Area Network', 'Large Access Node', 'Link Application Network', 'Load Allocation Network'],
+    correctAnswer: 0
+  },
+  {
+    id: 39,
+    category: 'Networks',
+    difficulty: 'medium',
+    question: 'What is the primary function of a switch?',
+    options: ['Forward packets to specific devices using MAC addresses', 'Assign IP addresses', 'Provide wireless access', 'Encrypt data'],
+    correctAnswer: 0
+  },
+  {
+    id: 40,
+    category: 'Networks',
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A web server is receiving 10,000 requests per second, far beyond normal traffic. The server becomes unresponsive and legitimate users cannot access it. Logs show requests from thousands of different IP addresses. What type of attack is this?',
+    options: ['Distributed Denial of Service (DDoS)', 'Phishing', 'SQL Injection', 'Man-in-the-Middle'],
+    correctAnswer: 0
+  },
+
+  // Cybersecurity (10 questions)
+  {
+    id: 41,
+    category: 'Cybersecurity',
+    difficulty: 'easy',
+    question: 'What type of attack involves flooding a server with traffic?',
+    options: ['DDoS', 'Phishing', 'SQL Injection', 'Cross-Site Scripting'],
+    correctAnswer: 0
+  },
+  {
+    id: 42,
+    category: 'Cybersecurity',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'An employee receives an email appearing to be from the CEO requesting immediate wire transfer of $50,000 to a new vendor. The email has the CEO\'s name but a slightly different email domain (ceo@companyy.com vs ceo@company.com). What type of attack is this?',
+    options: ['Phishing/Spear Phishing', 'DDoS', 'Ransomware', 'SQL Injection'],
+    correctAnswer: 0
+  },
+  {
+    id: 43,
+    category: 'Cybersecurity',
+    difficulty: 'hard',
+    question: 'What does SSL/TLS primarily provide?',
+    options: ['Encryption in transit', 'Data compression', 'File storage', 'User authentication only'],
+    correctAnswer: 0
+  },
+  {
+    id: 44,
+    category: 'Cybersecurity',
+    difficulty: 'easy',
+    question: 'What is two-factor authentication (2FA)?',
+    options: ['Using password + another verification method', 'Using two passwords', 'Two user accounts', 'Two browsers'],
+    correctAnswer: 0
+  },
+  {
+    id: 45,
+    category: 'Cybersecurity',
+    difficulty: 'medium',
+    isScenario: true,
+    question: 'A company database is compromised and attackers executed: "SELECT * FROM users WHERE id = 1 OR 1=1". This returned all user records instead of one. What vulnerability was exploited?',
+    options: ['SQL Injection', 'XSS', 'CSRF', 'Buffer Overflow'],
+    correctAnswer: 0
+  },
+  {
+    id: 46,
+    category: 'Cybersecurity',
+    difficulty: 'medium',
+    question: 'What is the principle of least privilege?',
+    options: ['Users get minimum access needed for their job', 'Everyone has admin rights', 'No passwords required', 'All data is public'],
+    correctAnswer: 0
+  },
+  {
+    id: 47,
+    category: 'Cybersecurity',
+    difficulty: 'hard',
+    question: 'Which encryption type uses the same key for encryption and decryption?',
+    options: ['Symmetric Encryption', 'Asymmetric Encryption', 'Hash Function', 'Digital Signature'],
+    correctAnswer: 0
+  },
+  {
+    id: 48,
+    category: 'Cybersecurity',
+    difficulty: 'easy',
+    question: 'What does VPN stand for?',
+    options: ['Virtual Private Network', 'Verified Password Network', 'Visual Protocol Node', 'Variable Public Network'],
+    correctAnswer: 0
+  },
+  {
+    id: 49,
+    category: 'Cybersecurity',
+    difficulty: 'medium',
+    question: 'What is the purpose of a firewall?',
+    options: ['Filter network traffic based on rules', 'Store passwords', 'Encrypt files', 'Scan for viruses only'],
+    correctAnswer: 0
+  },
+  {
+    id: 50,
+    category: 'Cybersecurity',
+    difficulty: 'hard',
+    isScenario: true,
+    question: 'A hospital\'s patient records are encrypted by malware and a ransom note demands 10 Bitcoin for the decryption key. The backup system was also compromised. Staff cannot access patient histories. What type of attack is this and what is the immediate priority?',
+    options: ['Ransomware - isolate infected systems and activate incident response plan', 'Phishing - reset passwords', 'DDoS - increase bandwidth', 'SQL Injection - patch database'],
+    correctAnswer: 0
+  }
+]
+
+const categoryIcons: Record<string, any> = {
+  'Pseudocode': Code,
+  'MS Office': FileSpreadsheet,
+  'Cloud': Cloud,
+  'Networks': Network,
+  'Cybersecurity': Shield
+}
+
+export default function TechnicalRound() {
+  const [selectedCategory, setSelectedCategory] = useState<string>('All')
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [answers, setAnswers] = useState<Record<number, number>>({})
+  const [skipped, setSkipped] = useState<Set<number>>(new Set())
+  const [timeLeft, setTimeLeft] = useState(45 * 60) // 45 minutes
+  const [isComplete, setIsComplete] = useState(false)
+  
+  const categories = ['All', 'Pseudocode', 'MS Office', 'Cloud', 'Networks', 'Cybersecurity']
+  
+  const filteredQuestions = selectedCategory === 'All' 
+    ? questions 
+    : questions.filter(q => q.category === selectedCategory)
+
+  useEffect(() => {
+    if (!isComplete && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            setIsComplete(true)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [isComplete, timeLeft])
+
+  const handleAnswer = (answerIndex: number) => {
+    const currentQuestionId = filteredQuestions[currentQuestion].id
+    setAnswers({ ...answers, [currentQuestionId]: answerIndex })
+    
+    // Remove from skipped if it was skipped before
+    const newSkipped = new Set(skipped)
+    newSkipped.delete(currentQuestionId)
+    setSkipped(newSkipped)
+    
+    localStorage.setItem('technical-answers', JSON.stringify({ ...answers, [currentQuestionId]: answerIndex }))
+  }
+  
+  const handleSkip = () => {
+    const currentQuestionId = filteredQuestions[currentQuestion].id
+    const newSkipped = new Set(skipped)
+    newSkipped.add(currentQuestionId)
+    setSkipped(newSkipped)
+    
+    if (currentQuestion < filteredQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1)
+    }
+  }
+
+  const handleNext = () => {
+    const currentQuestionId = filteredQuestions[currentQuestion].id
+    
+    // If no answer selected, mark as skipped
+    if (answers[currentQuestionId] === undefined) {
+      const newSkipped = new Set(skipped)
+      newSkipped.add(currentQuestionId)
+      setSkipped(newSkipped)
+    }
+    
+    if (currentQuestion < filteredQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1)
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1)
+    }
+  }
+
+  const handleQuestionJump = (index: number) => {
+    const currentQuestionId = filteredQuestions[currentQuestion].id
+    
+    // If no answer selected for current question, mark as skipped
+    if (answers[currentQuestionId] === undefined) {
+      const newSkipped = new Set(skipped)
+      newSkipped.add(currentQuestionId)
+      setSkipped(newSkipped)
+    }
+    
+    setCurrentQuestion(index)
+  }
+
+  const submitTest = () => {
+    setIsComplete(true)
+    
+    // Calculate results
+    let correct = 0
+    const categoryScores: Record<string, { correct: number, total: number }> = {}
+    
+    questions.forEach((q) => {
+      const userAnswer = answers[q.id]
+      if (userAnswer === q.correctAnswer) {
+        correct++
+      }
+      
+      if (!categoryScores[q.category]) {
+        categoryScores[q.category] = { correct: 0, total: 0 }
+      }
+      categoryScores[q.category].total++
+      if (userAnswer === q.correctAnswer) {
+        categoryScores[q.category].correct++
+      }
+    })
+    
+    localStorage.setItem('technical-results', JSON.stringify({
+      score: correct,
+      total: questions.length,
+      timeSpent: 2700 - timeLeft,
+      categoryScores,
+      skippedCount: skipped.size
+    }))
+  }
+
+  const answeredCount = Object.keys(answers).length
+  const remainingCount = filteredQuestions.length - answeredCount
+  const skippedCount = skipped.size
+
+  const progress = Math.round(((currentQuestion + 1) / filteredQuestions.length) * 100)
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  if (isComplete) {
+    const score = questions.filter((q) => answers[q.id] === q.correctAnswer).length
+    const percentage = Math.round((score / questions.length) * 100)
+    
+    return (
+      <main className="min-h-screen px-4 py-12">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="glass rounded-3xl p-12 text-center"
+          >
+            <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
+            <h1 className="text-4xl font-bold mb-4 gradient-text">
+              Technical Round Complete!
+            </h1>
+            <div className="grid grid-cols-3 gap-6 mb-8">
+              <div className="glass rounded-xl p-4">
+                <p className="text-gray-400 text-sm mb-1">Score</p>
+                <p className="text-3xl font-bold">{score}/{questions.length}</p>
+              </div>
+              <div className="glass rounded-xl p-4">
+                <p className="text-gray-400 text-sm mb-1">Percentage</p>
+                <p className="text-3xl font-bold">{percentage}%</p>
+              </div>
+              <div className="glass rounded-xl p-4">
+                <p className="text-gray-400 text-sm mb-1">Time Used</p>
+                <p className="text-3xl font-bold">{formatTime(2700 - timeLeft)}</p>
+              </div>
+            </div>
+            <Link href="/results">
+              <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg">
+                View Detailed Results
+              </button>
+            </Link>
+          </motion.div>
+        </div>
+      </main>
+    )
+  }
+
+  const currentQ = filteredQuestions[currentQuestion]
+  const CategoryIcon = categoryIcons[currentQ.category]
+
+  return (
+    <main className="min-h-screen px-4 py-8">
+      {/* Left Status Bar */}
+      <motion.div
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        className="fixed left-4 top-1/2 -translate-y-1/2 glass p-6 rounded-2xl w-64 z-10"
+      >
+        <h3 className="text-lg font-bold mb-4 text-center gradient-text">Progress</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <span className="text-sm">Answered</span>
+            </div>
+            <span className="font-bold text-green-400">{answeredCount}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Circle className="w-5 h-5 text-blue-400" />
+              <span className="text-sm">Remaining</span>
+            </div>
+            <span className="font-bold text-blue-400">{remainingCount}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-yellow-400" />
+              <span className="text-sm">Skipped</span>
+            </div>
+            <span className="font-bold text-yellow-400">{skippedCount}</span>
+          </div>
+          <div className="pt-4 border-t border-white/20">
+            <div className="text-center">
+              <div className="text-2xl font-bold gradient-text mb-1">
+                {Math.round((answeredCount / filteredQuestions.length) * 100)}%
+              </div>
+              <div className="text-xs opacity-70">Complete</div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      <div className="max-w-5xl mx-auto ml-72">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <Link href="/rounds">
+            <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+              Exit Test
+            </button>
+          </Link>
+          
+          <div className="flex items-center gap-6">
+            <div className={`flex items-center gap-2 glass px-4 py-2 rounded-full ${
+              timeLeft < 300 ? 'border-2 border-red-500 animate-pulse' : ''
+            }`}>
+              <Clock className="w-5 h-5 text-purple-400" />
+              <span className="font-mono">{formatTime(timeLeft)}</span>
+            </div>
+            <div className="glass px-4 py-2 rounded-full">
+              <span className="font-bold">{currentQuestion + 1}</span>
+              <span className="text-gray-400"> / {filteredQuestions.length}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Selector */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {categories.map((category) => {
+              const count = category === 'All' ? questions.length : questions.filter(q => q.category === category).length
+              return (
+                <motion.button
+                  key={category}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setSelectedCategory(category)
+                    setCurrentQuestion(0)
+                  }}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    selectedCategory === category
+                      ? 'bg-purple-500 bg-opacity-40 border-2 border-purple-400 shadow-lg'
+                      : 'glass hover:bg-white/10'
+                  }`}
+                >
+                  {category}
+                  <span className="ml-2 text-xs opacity-70">({count})</span>
+                </motion.button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Question Navigation Grid */}
+        <div className="mb-6 p-4 glass rounded-2xl">
+          <div className="text-sm font-semibold mb-3 text-center opacity-70">Question Navigator</div>
+          <div className="grid grid-cols-10 gap-2">
+            {filteredQuestions.map((q, idx) => {
+              const isAnswered = answers[q.id] !== undefined
+              const isSkipped = skipped.has(q.id)
+              const isCurrent = idx === currentQuestion
+              
+              return (
+                <motion.button
+                  key={q.id}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => handleQuestionJump(idx)}
+                  className={`aspect-square rounded-lg text-sm font-bold transition-all ${
+                    isCurrent
+                      ? 'bg-blue-500 border-2 border-blue-300 shadow-lg'
+                      : isAnswered
+                      ? 'bg-green-500 bg-opacity-60'
+                      : isSkipped
+                      ? 'bg-yellow-500 bg-opacity-60'
+                      : 'bg-white/10'
+                  }`}
+                >
+                  {idx + 1}
+                </motion.button>
+              )
+            })}
+          </div>
+          <div className="flex justify-center gap-4 mt-3 text-xs">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded bg-green-500 bg-opacity-60"></div>
+              <span>Answered</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded bg-yellow-500 bg-opacity-60"></div>
+              <span>Skipped</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded bg-blue-500"></div>
+              <span>Current</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-purple-600 to-pink-600"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+        </div>
+
+        {/* Question Card */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQuestion}
+            initial={{ x: 300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -300, opacity: 0 }}
+            transition={{ type: 'spring', damping: 20 }}
+            className="glass rounded-3xl p-10 mb-8"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <CategoryIcon className="w-6 h-6 text-purple-400" />
+                <p className="text-sm text-purple-400">{currentQ.category} • Question {currentQuestion + 1}</p>
+              </div>
+              <div className="flex gap-2 items-center">
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  currentQ.difficulty === 'easy'
+                    ? 'bg-green-500 bg-opacity-30'
+                    : currentQ.difficulty === 'medium'
+                    ? 'bg-yellow-500 bg-opacity-30'
+                    : 'bg-red-500 bg-opacity-30'
+                }`}>
+                  {currentQ.difficulty.toUpperCase()}
+                </span>
+                {currentQ.isScenario && (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500 bg-opacity-30">
+                    SCENARIO
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <h2 className={`font-bold mb-8 whitespace-pre-line ${
+              currentQ.isScenario ? 'text-lg leading-relaxed' : 'text-2xl'
+            }`}>
+              {currentQ.question}
+            </h2>
+
+            <div className="space-y-4">
+              {currentQ.options.map((option, index) => {
+                const isSelected = answers[currentQ.id] === index
+                return (
+                  <motion.button
+                    key={index}
+                    onClick={() => handleAnswer(index)}
+                    whileHover={{ scale: 1.02, x: 10 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`w-full text-left p-6 rounded-2xl transition-all ${
+                      isSelected 
+                        ? 'bg-gradient-to-r from-blue-600 to-cyan-600 border-2 border-blue-400 shadow-lg shadow-blue-500/50' 
+                        : 'glass hover:bg-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`text-lg ${isSelected ? 'font-bold' : ''}`}>
+                        {String.fromCharCode(65 + index)}. {option}
+                      </span>
+                      {isSelected && (
+                        <CheckCircle className="w-6 h-6 text-white" />
+                      )}
+                    </div>
+                  </motion.button>
+                )
+              })}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation */}
+        <div className="flex gap-4">
+          <button
+            onClick={handlePrevious}
+            disabled={currentQuestion === 0}
+            className="px-8 py-4 rounded-xl glass hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          <button
+            onClick={handleSkip}
+            className="px-8 py-4 rounded-xl glass hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+          >
+            Skip
+          </button>
+          
+          {currentQuestion < filteredQuestions.length - 1 ? (
+            <button
+              onClick={handleNext}
+              className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold"
+            >
+              Next Question
+            </button>
+          ) : (
+            <button
+              onClick={submitTest}
+              className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 font-bold"
+            >
+              Submit Test
+            </button>
+          )}
+        </div>
+
+      </div>
+    </main>
+  )
+}
