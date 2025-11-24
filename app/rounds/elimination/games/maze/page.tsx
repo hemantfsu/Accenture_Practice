@@ -63,6 +63,7 @@ export default function HiddenMazeGame() {
   const [hasKey, setHasKey] = useState(false)
   const [moves, setMoves] = useState(0)
   const [isWon, setIsWon] = useState(false)
+  const [keyCollected, setKeyCollected] = useState(false) // Track if key was picked up from its cell
   const [timeLeft, setTimeLeft] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('game-timer-remaining')
@@ -127,86 +128,63 @@ export default function HiddenMazeGame() {
     
     const targetCell = maze[newRow][newCol]
     
-    // Hit a wall - reveal it, reset to start, and lose key if collected
+    // Hit a wall - reset to start and lose key (wall stays hidden)
     if (targetCell.type === 'wall') {
-      const newMaze = maze.map((row, i) =>
-        row.map((cell, j) => {
-          // Clear previous player position
-          if (i === playerPos.row && j === playerPos.col) {
-            return { ...cell, type: 'empty' as CellType }
-          }
-          // Reveal the wall
-          if (i === newRow && j === newCol) {
-            return { ...cell, discovered: true, type: 'discovered-wall' as CellType }
-          }
-          // Place player back at start
-          if (i === 0 && j === 0) {
-            return { type: 'player' as CellType, discovered: true }
-          }
-          return cell
-        })
-      )
-      setMaze(newMaze)
-      setPlayerPos({ row: 0, col: 0 }) // Reset to start position
-      setHasKey(false) // Lose the key if you had it
+      setPlayerPos({ row: 0, col: 0 })
+      setHasKey(false)
+      setKeyCollected(false)
       setMoves(moves + 1)
+      
+      // Regenerate maze to reset everything
+      const newMaze = generateMaze()
+      setMaze(newMaze)
       return
     }
     
     // Try to enter exit without key - door won't open, stay in place
     if (targetCell.type === 'exit' && !hasKey) {
-      // Reveal the exit but don't move
-      const newMaze = maze.map((row, i) =>
-        row.map((cell, j) => {
-          if (i === newRow && j === newCol) {
-            return { ...cell, discovered: true }
-          }
-          return cell
-        })
-      )
-      setMaze(newMaze)
       setMoves(moves + 1)
       return
     }
     
+    // Reach exit with key - WIN!
+    if (targetCell.type === 'exit' && hasKey) {
+      setIsWon(true)
+      setPlayerPos({ row: newRow, col: newCol })
+      setMoves(moves + 1)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('hidden-maze-completed', JSON.stringify({ moves: moves + 1, time: 1200 - timeLeft }))
+      }
+      return
+    }
+    
+    // Collect key
+    if (targetCell.type === 'key' && !keyCollected) {
+      setHasKey(true)
+      setKeyCollected(true)
+    }
+    
     // Valid move - update player position
+    setPlayerPos({ row: newRow, col: newCol })
     setMoves(moves + 1)
     
+    // Mark cell as discovered
     const newMaze = maze.map((row, i) =>
       row.map((cell, j) => {
-        // Clear previous player position
-        if (i === playerPos.row && j === playerPos.col) {
-          return { ...cell, type: 'empty' as CellType }
-        }
-        // Move to new position
         if (i === newRow && j === newCol) {
-          // Collect key
-          if (cell.type === 'key') {
-            setHasKey(true)
-            return { type: 'player' as CellType, discovered: true }
-          }
-          // Reach exit with key - WIN!
-          if (cell.type === 'exit' && hasKey) {
-            setIsWon(true)
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('hidden-maze-completed', JSON.stringify({ moves: moves + 1, time: 1200 - timeLeft }))
-            }
-            return { type: 'player' as CellType, discovered: true }
-          }
-          return { ...cell, type: 'player' as CellType, discovered: true }
+          return { ...cell, discovered: true }
         }
         return cell
       })
     )
-    
     setMaze(newMaze)
-    setPlayerPos({ row: newRow, col: newCol })
   }
 
   const resetGame = () => {
     setMaze(generateMaze())
     setPlayerPos({ row: 0, col: 0 })
     setHasKey(false)
+    setKeyCollected(false)
     setMoves(0)
     setIsWon(false)
   }
@@ -218,11 +196,11 @@ export default function HiddenMazeGame() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-8">
-      <div className="max-w-5xl mx-auto">
+    <main className="min-h-screen px-4 py-6">
+      <div className="max-w-7xl mx-auto">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <Link href="/rounds/elimination">
             <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
               <ArrowLeft className="w-5 h-5" />
@@ -248,8 +226,8 @@ export default function HiddenMazeGame() {
         </div>
 
         {/* Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold mb-4 gradient-text">Hidden Maze</h1>
+        <div className="text-center mb-6">
+          <h1 className="text-4xl font-bold mb-2 gradient-text">Hidden Maze</h1>
           <p className="text-gray-400">Navigate the hidden maze • Find the key • Reach the exit</p>
         </div>
 
@@ -288,7 +266,7 @@ export default function HiddenMazeGame() {
         )}
 
         {/* Maze Grid */}
-        <div className="grid lg:grid-cols-[1.3fr_1fr_1fr] gap-8 mb-8">
+        <div className="grid lg:grid-cols-[1.8fr_1fr_1fr] gap-6 mb-6">
           
           {/* Left Panel - Game Rules */}
           <div className="glass rounded-3xl p-6">
@@ -298,92 +276,80 @@ export default function HiddenMazeGame() {
                 <span className="text-purple-400 font-bold">1.</span>
                 <div>
                   <p className="font-semibold text-white">Goal:</p>
-                  <p className="text-gray-400">Start from S (Start) → collect the Key (K) → reach the Exit (E) safely.</p>
+                  <p className="text-gray-400">Start from S → collect Key (K) → reach Exit (E).</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-purple-400 font-bold">2.</span>
                 <div>
                   <p className="font-semibold text-white">Hidden Walls:</p>
-                  <p className="text-gray-400">Some cells have invisible walls (X) - you can't see them until you try to move into them.</p>
+                  <p className="text-gray-400">Invisible walls (X) remain hidden throughout the game.</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-purple-400 font-bold">3.</span>
                 <div>
                   <p className="font-semibold text-white">Movement:</p>
-                  <p className="text-gray-400 mb-1">• You can move Up, Down, Left, or Right (no diagonal moves).</p>
-                  <p className="text-gray-400">• Each move reveals if the new cell is safe or blocked.</p>
+                  <p className="text-gray-400">Move Up/Down/Left/Right. Each move reveals the cell.</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-purple-400 font-bold">4.</span>
                 <div>
-                  <p className="font-semibold text-white">Blocked Cell:</p>
-                  <p className="text-gray-400 mb-1">• If you hit a wall (X), you instantly restart from the Start position.</p>
-                  <p className="text-gray-400 mb-1">• The wall is revealed (marked red) for future attempts.</p>
-                  <p className="text-gray-400">• You lose your key if you had collected it.</p>
+                  <p className="font-semibold text-white">Hit a Wall:</p>
+                  <p className="text-gray-400">Instantly restart from Start, lose your key. Wall stays hidden.</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-purple-400 font-bold">5.</span>
                 <div>
                   <p className="font-semibold text-white">Key Rule:</p>
-                  <p className="text-gray-400 mb-1">• You must collect the Key (K) before the Exit (E) opens.</p>
-                  <p className="text-gray-400">• If you reach E without the key, the door won't open.</p>
+                  <p className="text-gray-400">Must collect key before exit opens.</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <span className="text-purple-400 font-bold">6.</span>
                 <div>
-                  <p className="font-semibold text-white">Winning Condition:</p>
-                  <p className="text-gray-400">You win when you reach E (Exit) after collecting the key.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-orange-400 font-bold">7.</span>
-                <div>
-                  <p className="font-semibold text-white">Losing Condition:</p>
-                  <p className="text-gray-400 mb-1">• You lose if you get trapped (no open moves left).</p>
-                  <p className="text-gray-400">• Restart the level and try a new path.</p>
+                  <p className="font-semibold text-white">Win:</p>
+                  <p className="text-gray-400">Reach E after collecting the key.</p>
                 </div>
               </div>
             </div>
             
             <div className="mt-4 pt-4 border-t border-white/10">
               <h3 className="font-bold mb-2">🎨 Legend</h3>
-              <div className="space-y-1.5 text-xs">
+              <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50 flex items-center justify-center">
-                    <span className="text-xl">👤</span>
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50 flex items-center justify-center">
+                    <span className="text-lg">👤</span>
                   </div>
-                  <span><span className="font-bold">S</span> - Start (You)</span>
+                  <span><span className="font-bold">S</span> - Start</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-lg shadow-yellow-500/50 flex items-center justify-center">
-                    <Key className="w-5 h-5 text-white" />
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 shadow-lg shadow-yellow-500/50 flex items-center justify-center">
+                    <Key className="w-4 h-4 text-white" />
                   </div>
-                  <span><span className="font-bold">K</span> - Key (Must collect)</span>
+                  <span><span className="font-bold">K</span> - Key</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/50 flex items-center justify-center">
-                    <Flag className="w-5 h-5 text-white" />
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/50 flex items-center justify-center">
+                    <Flag className="w-4 h-4 text-white" />
                   </div>
-                  <span><span className="font-bold">E</span> - Exit (Goal)</span>
+                  <span><span className="font-bold">E</span> - Exit</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/50 flex items-center justify-center">
-                    <span className="text-xl">🚫</span>
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/50 flex items-center justify-center">
+                    <span className="text-lg">🚫</span>
                   </div>
-                  <span><span className="font-bold">X</span> - Wall (Blocked)</span>
+                  <span><span className="font-bold">X</span> - Wall</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg glass border border-white/20" />
-                  <span>Unknown (Hidden)</span>
+                  <div className="w-7 h-7 rounded-lg glass border border-white/20" />
+                  <span>Unknown</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-white/5" />
-                  <span>Safe Path (Explored)</span>
+                  <div className="w-7 h-7 rounded-lg bg-white/5" />
+                  <span>Safe Path</span>
                 </div>
               </div>
             </div>
@@ -402,8 +368,10 @@ export default function HiddenMazeGame() {
                   const isStart = i === 0 && j === 0
                   // Check if this is the exit position (4,4)
                   const isExit = i === 4 && j === 4
+                  // Check if player is at this position
+                  const isPlayer = playerPos.row === i && playerPos.col === j
                   
-                  if (cell.type === 'player') {
+                  if (isPlayer) {
                     bgColor = 'bg-gradient-to-br from-blue-500 to-blue-600'
                     shadowClass = 'shadow-lg shadow-blue-500/50'
                     content = (
@@ -414,12 +382,16 @@ export default function HiddenMazeGame() {
                         )}
                       </div>
                     )
-                  } else if (cell.type === 'key' && cell.discovered) {
-                    bgColor = 'bg-gradient-to-br from-yellow-500 to-yellow-600'
-                    shadowClass = 'shadow-lg shadow-yellow-500/50'
-                    content = <Key className="w-8 h-8 text-white" />
-                  } else if (cell.type === 'exit') {
+                  } else if (cell.type === 'key' && !keyCollected) {
                     if (cell.discovered) {
+                      bgColor = 'bg-gradient-to-br from-yellow-500 to-yellow-600'
+                      shadowClass = 'shadow-lg shadow-yellow-500/50'
+                      content = <Key className="w-8 h-8 text-white" />
+                    } else {
+                      bgColor = 'glass border border-white/10'
+                    }
+                  } else if (cell.type === 'exit') {
+                    if (cell.discovered || isExit) {
                       if (hasKey) {
                         bgColor = 'bg-gradient-to-br from-green-500 to-green-600'
                         shadowClass = 'shadow-lg shadow-green-500/50 animate-pulse'
@@ -434,7 +406,6 @@ export default function HiddenMazeGame() {
                         </div>
                       )
                     } else {
-                      // Show exit even when not discovered
                       bgColor = 'glass border-2 border-green-500/30'
                       content = (
                         <div className="relative flex items-center justify-center w-full h-full">
@@ -443,13 +414,9 @@ export default function HiddenMazeGame() {
                         </div>
                       )
                     }
-                  } else if (cell.type === 'discovered-wall' || (cell.type === 'wall' && cell.discovered)) {
-                    bgColor = 'bg-gradient-to-br from-red-500 to-red-600'
-                    shadowClass = 'shadow-lg shadow-red-500/50'
-                    content = <span className="text-3xl">🚫</span>
                   } else if (cell.discovered) {
                     bgColor = 'bg-white/5'
-                  } else if (isStart && cell.type === 'empty') {
+                  } else if (isStart && !isPlayer) {
                     // Show start marker when player is not there
                     bgColor = 'glass border-2 border-blue-500/30'
                     content = (
