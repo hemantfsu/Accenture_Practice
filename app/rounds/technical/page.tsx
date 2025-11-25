@@ -597,33 +597,33 @@ export default function TechnicalRound() {
     const percentage = Math.round((score / questions.length) * 100)
     
     return (
-      <main className="min-h-screen px-4 py-12">
+      <main className="min-h-screen px-4 sm:px-6 py-8 sm:py-12">
         <div className="max-w-3xl mx-auto">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="glass rounded-3xl p-12 text-center"
+            className="glass rounded-2xl sm:rounded-3xl p-8 sm:p-12 text-center"
           >
-            <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
-            <h1 className="text-4xl font-bold mb-4 gradient-text">
+            <CheckCircle className="w-16 h-16 sm:w-20 sm:h-20 text-green-500 mx-auto mb-4 sm:mb-6" />
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 gradient-text">
               Technical Round Complete!
             </h1>
-            <div className="grid grid-cols-3 gap-6 mb-8">
-              <div className="glass rounded-xl p-4">
-                <p className="text-gray-400 text-sm mb-1">Score</p>
-                <p className="text-3xl font-bold">{score}/{questions.length}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <div className="glass rounded-lg sm:rounded-xl p-3 sm:p-4">
+                <p className="text-gray-400 text-xs sm:text-sm mb-1">Score</p>
+                <p className="text-2xl sm:text-3xl font-bold">{score}/{questions.length}</p>
               </div>
-              <div className="glass rounded-xl p-4">
-                <p className="text-gray-400 text-sm mb-1">Percentage</p>
-                <p className="text-3xl font-bold">{percentage}%</p>
+              <div className="glass rounded-lg sm:rounded-xl p-3 sm:p-4">
+                <p className="text-gray-400 text-xs sm:text-sm mb-1">Percentage</p>
+                <p className="text-2xl sm:text-3xl font-bold">{percentage}%</p>
               </div>
-              <div className="glass rounded-xl p-4">
-                <p className="text-gray-400 text-sm mb-1">Time Used</p>
-                <p className="text-3xl font-bold">{formatTime(2700 - timeLeft)}</p>
+              <div className="glass rounded-lg sm:rounded-xl p-3 sm:p-4">
+                <p className="text-gray-400 text-xs sm:text-sm mb-1">Time Used</p>
+                <p className="text-2xl sm:text-3xl font-bold">{formatTime(2700 - timeLeft)}</p>
               </div>
             </div>
             <Link href="/results">
-              <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg">
+              <button className="px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold">
                 View Detailed Results
               </button>
             </Link>
@@ -637,39 +637,39 @@ export default function TechnicalRound() {
   const CategoryIcon = categoryIcons[currentQ.category]
 
   return (
-    <main className="min-h-screen px-4 py-8">
+    <main className="min-h-screen px-2 sm:px-4 py-4 sm:py-8">
       {/* Left Status Bar */}
       <motion.div
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="fixed left-4 top-1/2 -translate-y-1/2 glass p-6 rounded-2xl w-64 z-10"
+        className="hidden lg:block fixed left-2 lg:left-4 top-1/2 -translate-y-1/2 glass p-4 lg:p-6 rounded-xl lg:rounded-2xl w-48 lg:w-64 z-10"
       >
-        <h3 className="text-lg font-bold mb-4 text-center gradient-text">Progress</h3>
-        <div className="space-y-4">
+        <h3 className="text-base lg:text-lg font-bold mb-3 lg:mb-4 text-center gradient-text">Progress</h3>
+        <div className="space-y-3 lg:space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
-              <span className="text-sm">Answered</span>
+              <CheckCircle2 className="w-4 h-4 lg:w-5 lg:h-5 text-green-400" />
+              <span className="text-xs lg:text-sm">Answered</span>
             </div>
-            <span className="font-bold text-green-400">{answeredCount}</span>
+            <span className="font-bold text-green-400 text-sm lg:text-base">{answeredCount}</span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Circle className="w-5 h-5 text-blue-400" />
-              <span className="text-sm">Remaining</span>
+              <Circle className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
+              <span className="text-xs lg:text-sm">Remaining</span>
             </div>
-            <span className="font-bold text-blue-400">{remainingCount}</span>
+            <span className="font-bold text-blue-400 text-sm lg:text-base">{remainingCount}</span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-yellow-400" />
-              <span className="text-sm">Skipped</span>
+              <AlertCircle className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-400" />
+              <span className="text-xs lg:text-sm">Skipped</span>
             </div>
-            <span className="font-bold text-yellow-400">{skippedCount}</span>
+            <span className="font-bold text-yellow-400 text-sm lg:text-base">{skippedCount}</span>
           </div>
-          <div className="pt-4 border-t border-white/20">
+          <div className="pt-3 lg:pt-4 border-t border-white/20">
             <div className="text-center">
-              <div className="text-2xl font-bold gradient-text mb-1">
+              <div className="text-xl lg:text-2xl font-bold gradient-text mb-1">
                 {Math.round((answeredCount / filteredQuestions.length) * 100)}%
               </div>
               <div className="text-xs opacity-70">Complete</div>
@@ -678,33 +678,33 @@ export default function TechnicalRound() {
         </div>
       </motion.div>
 
-      <div className="max-w-5xl mx-auto ml-72">
+      <div className="max-w-5xl mx-auto lg:ml-72">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-8 gap-3 sm:gap-0">
           <Link href="/rounds">
             <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-              Exit Test
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-sm sm:text-base">Exit Test</span>
             </button>
           </Link>
           
-          <div className="flex items-center gap-6">
-            <div className={`flex items-center gap-2 glass px-4 py-2 rounded-full ${
+          <div className="flex items-center gap-3 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
+            <div className={`flex items-center gap-2 glass px-3 sm:px-4 py-2 rounded-full ${
               timeLeft < 300 ? 'border-2 border-red-500 animate-pulse' : ''
             }`}>
-              <Clock className="w-5 h-5 text-purple-400" />
-              <span className="font-mono">{formatTime(timeLeft)}</span>
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
+              <span className="font-mono text-sm sm:text-base">{formatTime(timeLeft)}</span>
             </div>
-            <div className="glass px-4 py-2 rounded-full">
-              <span className="font-bold">{currentQuestion + 1}</span>
-              <span className="text-gray-400"> / {filteredQuestions.length}</span>
+            <div className="glass px-3 sm:px-4 py-2 rounded-full">
+              <span className="font-bold text-sm sm:text-base">{currentQuestion + 1}</span>
+              <span className="text-gray-400 text-sm sm:text-base"> / {filteredQuestions.length}</span>
             </div>
           </div>
         </div>
 
         {/* Category Selector */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <div className="flex flex-wrap gap-2 justify-center">
             {categories.map((category) => {
               const count = category === 'All' ? questions.length : questions.filter(q => q.category === category).length
@@ -717,14 +717,15 @@ export default function TechnicalRound() {
                     setSelectedCategory(category)
                     setCurrentQuestion(0)
                   }}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                     selectedCategory === category
                       ? 'bg-purple-500 bg-opacity-40 border-2 border-purple-400 shadow-lg'
                       : 'glass hover:bg-white/10'
                   }`}
                 >
-                  {category}
-                  <span className="ml-2 text-xs opacity-70">({count})</span>
+                  <span className="hidden sm:inline">{category}</span>
+                  <span className="sm:hidden">{category === 'Cybersecurity' ? 'Cyber' : category}</span>
+                  <span className="ml-1 sm:ml-2 text-xs opacity-70">({count})</span>
                 </motion.button>
               )
             })}
@@ -732,9 +733,9 @@ export default function TechnicalRound() {
         </div>
 
         {/* Question Navigation Grid */}
-        <div className="mb-6 p-4 glass rounded-2xl">
-          <div className="text-sm font-semibold mb-3 text-center opacity-70">Question Navigator</div>
-          <div className="grid grid-cols-10 gap-2">
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 glass rounded-xl sm:rounded-2xl">
+          <div className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3 text-center opacity-70">Question Navigator</div>
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5 sm:gap-2">
             {filteredQuestions.map((q, idx) => {
               const isAnswered = answers[q.id] !== undefined
               const isSkipped = skipped.has(q.id)
@@ -746,7 +747,7 @@ export default function TechnicalRound() {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => handleQuestionJump(idx)}
-                  className={`aspect-square rounded-lg text-sm font-bold transition-all ${
+                  className={`aspect-square rounded-md sm:rounded-lg text-xs sm:text-sm font-bold transition-all ${
                     isCurrent
                       ? 'bg-blue-500 border-2 border-blue-300 shadow-lg'
                       : isAnswered
@@ -761,25 +762,25 @@ export default function TechnicalRound() {
               )
             })}
           </div>
-          <div className="flex justify-center gap-4 mt-3 text-xs">
+          <div className="flex justify-center gap-3 sm:gap-4 mt-2 sm:mt-3 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-green-500 bg-opacity-60"></div>
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-green-500 bg-opacity-60"></div>
               <span>Answered</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-yellow-500 bg-opacity-60"></div>
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-yellow-500 bg-opacity-60"></div>
               <span>Skipped</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-blue-500"></div>
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-blue-500"></div>
               <span>Current</span>
             </div>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
+        <div className="mb-6 sm:mb-8">
+          <div className="h-2 sm:h-3 bg-gray-800 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-purple-600 to-pink-600"
               animate={{ width: `${progress}%` }}
@@ -796,15 +797,15 @@ export default function TechnicalRound() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: 'spring', damping: 20 }}
-            className="glass rounded-3xl p-10 mb-8"
+            className="glass rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 mb-6 sm:mb-8"
           >
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <CategoryIcon className="w-6 h-6 text-purple-400" />
-                <p className="text-sm text-purple-400">{currentQ.category} • Question {currentQuestion + 1}</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <CategoryIcon className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400 flex-shrink-0" />
+                <p className="text-xs sm:text-sm text-purple-400">{currentQ.category} • Question {currentQuestion + 1}</p>
               </div>
-              <div className="flex gap-2 items-center">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              <div className="flex gap-2 items-center flex-wrap">
+                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${
                   currentQ.difficulty === 'easy'
                     ? 'bg-green-500 bg-opacity-30'
                     : currentQ.difficulty === 'medium'
@@ -814,20 +815,20 @@ export default function TechnicalRound() {
                   {currentQ.difficulty.toUpperCase()}
                 </span>
                 {currentQ.isScenario && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500 bg-opacity-30">
+                  <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-semibold bg-blue-500 bg-opacity-30">
                     SCENARIO
                   </span>
                 )}
               </div>
             </div>
             
-            <h2 className={`font-bold mb-8 whitespace-pre-line ${
-              currentQ.isScenario ? 'text-lg leading-relaxed' : 'text-2xl'
+            <h2 className={`font-bold mb-6 sm:mb-8 whitespace-pre-line ${
+              currentQ.isScenario ? 'text-base sm:text-lg leading-relaxed' : 'text-lg sm:text-xl lg:text-2xl'
             }`}>
               {currentQ.question}
             </h2>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {currentQ.options.map((option, index) => {
                 const isSelected = answers[currentQ.id] === index
                 return (
@@ -836,18 +837,18 @@ export default function TechnicalRound() {
                     onClick={() => handleAnswer(index)}
                     whileHover={{ scale: 1.02, x: 10 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`w-full text-left p-6 rounded-2xl transition-all ${
+                    className={`w-full text-left p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl transition-all ${
                       isSelected 
                         ? 'bg-gradient-to-r from-blue-600 to-cyan-600 border-2 border-blue-400 shadow-lg shadow-blue-500/50' 
                         : 'glass hover:bg-white/10'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-lg ${isSelected ? 'font-bold' : ''}`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className={`text-sm sm:text-base lg:text-lg break-words ${isSelected ? 'font-bold' : ''}`}>
                         {String.fromCharCode(65 + index)}. {option}
                       </span>
                       {isSelected && (
-                        <CheckCircle className="w-6 h-6 text-white" />
+                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" />
                       )}
                     </div>
                   </motion.button>
@@ -858,18 +859,18 @@ export default function TechnicalRound() {
         </AnimatePresence>
 
         {/* Navigation */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button
             onClick={handlePrevious}
             disabled={currentQuestion === 0}
-            className="px-8 py-4 rounded-xl glass hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base rounded-xl glass hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
           
           <button
             onClick={handleSkip}
-            className="px-8 py-4 rounded-xl glass hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+            className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base rounded-xl glass hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
           >
             Skip
           </button>
@@ -877,14 +878,14 @@ export default function TechnicalRound() {
           {currentQuestion < filteredQuestions.length - 1 ? (
             <button
               onClick={handleNext}
-              className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold"
+              className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold"
             >
               Next Question
             </button>
           ) : (
             <button
               onClick={submitTest}
-              className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 font-bold"
+              className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 font-bold"
             >
               Submit Test
             </button>

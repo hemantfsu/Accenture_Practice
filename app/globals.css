@@ -10,12 +10,18 @@
 
 html {
   scroll-behavior: smooth;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
 }
 
 body {
   background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
   color: #e9eef8;
   min-height: 100vh;
+  overflow-x: hidden;
+  /* Better font rendering on iOS */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .glass {
@@ -52,4 +58,332 @@ body {
 .btn-bloom:hover::before {
   width: 300px;
   height: 300px;
+}
+
+/* ===================================
+   MOBILE SPECIFIC STYLES
+   =================================== */
+
+/* Small Mobile Devices (iPhone SE, small Android) - 320px to 374px */
+@media only screen and (max-width: 374px) {
+  body {
+    font-size: 14px;
+  }
+  
+  .glass {
+    padding: 1rem !important;
+  }
+  
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  h3 {
+    font-size: 1.1rem !important;
+  }
+  
+  button {
+    font-size: 0.875rem !important;
+    padding: 0.5rem 1rem !important;
+  }
+}
+
+/* Standard Mobile Devices (iPhone, Android) - 375px to 639px */
+@media only screen and (max-width: 639px) {
+  /* Hide fixed sidebar on mobile */
+  .fixed.left-4 {
+    display: none !important;
+  }
+  
+  /* Full width on mobile */
+  .max-w-6xl,
+  .max-w-5xl,
+  .max-w-4xl,
+  .max-w-3xl {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Adjust spacing */
+  main {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+  
+  /* Stack grids vertically */
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Reduce text sizes */
+  .text-7xl {
+    font-size: 2.5rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .text-5xl {
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .text-4xl {
+    font-size: 1.75rem !important;
+  }
+  
+  .text-3xl {
+    font-size: 1.5rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+  
+  /* Adjust padding for cards */
+  .rounded-3xl {
+    padding: 1.5rem !important;
+  }
+  
+  .rounded-2xl {
+    padding: 1rem !important;
+  }
+  
+  /* Better touch targets */
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Adjust icon sizes */
+  svg {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+  }
+  
+  /* Question grid for mobile */
+  .grid-cols-10 {
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+  
+  /* Remove margins on mobile layout */
+  .ml-72 {
+    margin-left: 0 !important;
+  }
+  
+  /* Stack flex items */
+  .flex-wrap {
+    flex-wrap: wrap !important;
+  }
+}
+
+/* ===================================
+   iOS SPECIFIC STYLES
+   =================================== */
+
+/* iPhone SE (375px) */
+@media only screen and (min-width: 375px) and (max-width: 389px) {
+  .text-7xl {
+    font-size: 2.75rem !important;
+  }
+}
+
+/* Standard iPhone (390px - iPhone 12, 13, 14) */
+@media only screen and (min-width: 390px) and (max-width: 427px) {
+  .text-7xl {
+    font-size: 3rem !important;
+  }
+  
+  .glass {
+    padding: 1.75rem !important;
+  }
+}
+
+/* iPhone Pro Max (428px) */
+@media only screen and (min-width: 428px) and (max-width: 639px) {
+  .text-7xl {
+    font-size: 3.25rem !important;
+  }
+}
+
+/* iPad Portrait (768px to 820px) */
+@media only screen and (min-width: 768px) and (max-width: 820px) {
+  .grid-cols-10 {
+    grid-template-columns: repeat(10, 1fr) !important;
+  }
+  
+  .fixed.left-4 {
+    width: 12rem !important;
+    font-size: 0.875rem;
+  }
+  
+  .ml-72 {
+    margin-left: 14rem !important;
+  }
+}
+
+/* iPad Pro (1024px) */
+@media only screen and (min-width: 1024px) and (max-width: 1199px) {
+  .max-w-5xl,
+  .max-w-6xl {
+    max-width: 960px;
+  }
+}
+
+/* ===================================
+   LAPTOP & DESKTOP STYLES
+   =================================== */
+
+/* Small Laptop (1024px to 1279px) */
+@media only screen and (min-width: 1024px) and (max-width: 1279px) {
+  .text-7xl {
+    font-size: 4rem !important;
+  }
+  
+  .fixed.left-4 {
+    width: 14rem;
+  }
+  
+  .ml-72 {
+    margin-left: 16rem !important;
+  }
+  
+  .max-w-6xl {
+    max-width: 1000px;
+  }
+}
+
+/* Standard Laptop (1280px to 1535px) */
+@media only screen and (min-width: 1280px) and (max-width: 1535px) {
+  .text-7xl {
+    font-size: 4.5rem !important;
+  }
+  
+  .fixed.left-4 {
+    width: 16rem;
+  }
+}
+
+/* Large Desktop (1536px+) */
+@media only screen and (min-width: 1536px) {
+  .max-w-6xl {
+    max-width: 1400px;
+  }
+  
+  .text-7xl {
+    font-size: 5rem !important;
+  }
+}
+
+/* ===================================
+   LANDSCAPE ORIENTATION
+   =================================== */
+
+/* Mobile Landscape */
+@media only screen and (max-height: 500px) and (orientation: landscape) {
+  main {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  .text-7xl {
+    font-size: 2rem !important;
+  }
+  
+  .text-5xl {
+    font-size: 1.5rem !important;
+  }
+  
+  .py-20 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+  
+  .py-12 {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+  
+  .mb-20 {
+    margin-bottom: 2rem !important;
+  }
+  
+  .mb-12 {
+    margin-bottom: 1.5rem !important;
+  }
+}
+
+/* ===================================
+   TOUCH DEVICE OPTIMIZATIONS
+   =================================== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Disable hover effects on touch devices */
+  .hover\:scale-105:hover,
+  .hover\:scale-102:hover {
+    transform: none !important;
+  }
+  
+  /* Larger touch targets */
+  button,
+  a,
+  input,
+  select {
+    min-height: 48px;
+  }
+  
+  /* Remove glassmorphism blur on low-end devices for performance */
+  @supports not (-webkit-backdrop-filter: blur(10px)) {
+    .glass {
+      backdrop-filter: none;
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+/* ===================================
+   SAFE AREAS (iPhone Notch)
+   =================================== */
+
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+  
+  main {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  footer {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* ===================================
+   PERFORMANCE OPTIMIZATIONS
+   =================================== */
+
+/* Reduce animations on low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High DPI screens (Retina displays) */
+@media only screen and (-webkit-min-device-pixel-ratio: 2),
+       only screen and (min-resolution: 192dpi) {
+  .gradient-text {
+    -webkit-font-smoothing: antialiased;
+  }
 }

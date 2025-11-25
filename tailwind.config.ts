@@ -8,6 +8,19 @@ const config: Config = {
   ],
   darkMode: 'class',
   theme: {
+    screens: {
+      'xs': '375px',      // iPhone SE, small phones
+      'sm': '640px',      // Mobile landscape, larger phones
+      'md': '768px',      // Tablets, iPad
+      'lg': '1024px',     // Laptop, small desktop
+      'xl': '1280px',     // Desktop
+      '2xl': '1536px',    // Large desktop
+      // iOS specific
+      'iphone': '390px',  // iPhone 12, 13, 14
+      'iphone-max': '428px', // iPhone Pro Max
+      'ipad': '820px',    // iPad
+      'ipad-pro': '1024px', // iPad Pro
+    },
     extend: {
       colors: {
         primary: {
