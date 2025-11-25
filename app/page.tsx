@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Play, Brain, Code, Trophy } from 'lucide-react'
+import InstallPrompt from '@/components/InstallPrompt'
 
 export default function HomePage() {
   return (
@@ -121,6 +122,9 @@ export default function HomePage() {
         </Link>
 
       </div>
+      
+      {/* PWA Install Prompt */}
+      <InstallPrompt />
     </main>
   )
 }

@@ -92,31 +92,26 @@ export default function ExpressionOrderingGame() {
   const [items, setItems] = useState<Expression[]>(questions[0].expressions)
   const [answers, setAnswers] = useState<Expression[][]>([])
   const [isComplete, setIsComplete] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('game-timer-remaining')
-      return saved ? parseInt(saved) : 20 * 60
-    }
-    return 20 * 60
-  })
+  const [questionTimeLeft, setQuestionTimeLeft] = useState(15) // 15 seconds per question
+  const [totalTimeSpent, setTotalTimeSpent] = useState(0)
 
+  // Timer for each question (15 seconds)
   useEffect(() => {
-    if (!isComplete && timeLeft > 0) {
+    if (!isComplete && questionTimeLeft > 0) {
       const interval = setInterval(() => {
-        setTimeLeft(t => {
-          const newTime = t - 1
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('game-timer-remaining', newTime.toString())
-          }
-          return newTime
-        })
+        setQuestionTimeLeft(t => t - 1)
+        setTotalTimeSpent(t => t + 1)
       }, 1000)
       return () => clearInterval(interval)
+    } else if (questionTimeLeft === 0 && !isComplete) {
+      // Auto-submit when time runs out
+      submitAnswer()
     }
-  }, [isComplete, timeLeft])
+  }, [isComplete, questionTimeLeft])
 
   useEffect(() => {
     setItems(questions[currentQuestion].expressions)
+    setQuestionTimeLeft(15) // Reset timer for each new question
   }, [currentQuestion, questions])
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -156,7 +151,7 @@ export default function ExpressionOrderingGame() {
         localStorage.setItem('expression-ordering-completed', JSON.stringify({ 
           score: finalScore, 
           total: questions.length,
-          time: 1200 - timeLeft 
+          time: totalTimeSpent 
         }))
       }
     }
@@ -204,7 +199,7 @@ export default function ExpressionOrderingGame() {
               </div>
               <div className="glass rounded-xl p-4">
                 <p className="text-gray-400 text-sm mb-1">Time</p>
-                <p className="text-3xl font-bold">{formatTime(1200 - timeLeft)}</p>
+                <p className="text-3xl font-bold">{formatTime(totalTimeSpent)}</p>
               </div>
             </div>
             <Link href="/rounds/elimination">
@@ -236,10 +231,11 @@ export default function ExpressionOrderingGame() {
               <span className="text-gray-400">Progress: </span>
               <span className="font-bold">{currentQuestion + 1}/{questions.length}</span>
             </div>
-            <div className={`glass px-4 py-2 rounded-full font-mono ${
-              timeLeft < 300 ? 'border-2 border-red-500 animate-pulse' : ''
+            <div className={`glass px-4 py-2 rounded-full font-mono font-bold text-lg ${
+              questionTimeLeft <= 5 ? 'border-2 border-red-500 animate-pulse text-red-400' : 'text-white'
             }`}>
-              {formatTime(timeLeft)}
+              <span className="text-sm text-gray-400 mr-2">Time:</span>
+              {questionTimeLeft}s
             </div>
           </div>
         </div>
@@ -248,7 +244,7 @@ export default function ExpressionOrderingGame() {
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold mb-4 gradient-text">Expression Ordering</h1>
           <p className="text-gray-400">Arrange expressions in ascending order</p>
-          <p className="text-sm text-gray-500 mt-2">Question {currentQuestion + 1} of {questions.length}</p>
+          <p className="text-sm text-gray-500 mt-2">Question {currentQuestion + 1} of {questions.length} • 15 seconds per question</p>
         </div>
 
         {/* Progress Bar */}
@@ -292,7 +288,8 @@ export default function ExpressionOrderingGame() {
             <li>• Drag and drop the expressions to arrange them</li>
             <li>• Order from smallest to largest value</li>
             <li>• Compare fractions and decimals carefully</li>
-            <li>• Your answers will be checked at the end</li>
+            <li>• You have 15 seconds for each question</li>
+            <li>• Questions auto-submit when time runs out</li>
           </ul>
         </div>
 
