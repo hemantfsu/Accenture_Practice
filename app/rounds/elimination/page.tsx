@@ -6,41 +6,41 @@ import { ArrowLeft, Brain, Gamepad2 } from 'lucide-react'
 
 export default function EliminationPage() {
   return (
-    <main className="min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <main className="min-h-screen px-4 py-12">
       <div className="max-w-5xl mx-auto">
         
         <Link href="/rounds">
-          <button className="mb-6 sm:mb-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-sm sm:text-base">Back to Rounds</span>
+          <button className="mb-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+            Back to Rounds
           </button>
         </Link>
 
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 gradient-text text-center px-4">
+        <h1 className="text-5xl font-bold mb-4 gradient-text text-center">
           Round 1: Elimination
         </h1>
-        <p className="text-center text-sm sm:text-base text-gray-400 mb-8 sm:mb-12 px-4">
+        <p className="text-center text-gray-400 mb-12">
           Complete the Psychometric Test and all 3 games to pass this round
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+        <div className="grid md:grid-cols-2 gap-8">
           
           {/* Psychometric Test */}
           <Link href="/rounds/elimination/psychometric">
             <motion.div
               whileHover={{ scale: 1.02, y: -5 }}
-              className="glass rounded-xl sm:rounded-2xl p-6 sm:p-8 cursor-pointer h-full"
+              className="glass rounded-2xl p-8 cursor-pointer h-full"
             >
-              <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-600 flex-shrink-0">
-                  <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 rounded-xl bg-purple-600">
+                  <Brain className="w-8 h-8 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold">Psychometric Test</h3>
-                  <p className="text-xs sm:text-sm text-gray-400">54 Questions</p>
+                <div>
+                  <h3 className="text-xl font-bold">Psychometric Test</h3>
+                  <p className="text-sm text-gray-400">54 Questions</p>
                 </div>
               </div>
-              <p className="text-gray-300 text-xs sm:text-sm">
+              <p className="text-gray-300 text-sm">
                 Personality and aptitude assessment to evaluate your behavioral traits
               </p>
             </motion.div>
@@ -50,18 +50,18 @@ export default function EliminationPage() {
           <Link href="/rounds/elimination/games/rotate-path">
             <motion.div
               whileHover={{ scale: 1.02, y: -5 }}
-              className="glass rounded-xl sm:rounded-2xl p-6 sm:p-8 cursor-pointer h-full"
+              className="glass rounded-2xl p-8 cursor-pointer h-full"
             >
-              <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-pink-600 flex-shrink-0">
-                  <Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 rounded-xl bg-pink-600">
+                  <Gamepad2 className="w-8 h-8 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold">Rotate Path Puzzle</h3>
-                  <p className="text-xs sm:text-sm text-gray-400">Game 1</p>
+                <div>
+                  <h3 className="text-xl font-bold">Rotate Path Puzzle</h3>
+                  <p className="text-sm text-gray-400">Game 1</p>
                 </div>
               </div>
-              <p className="text-gray-300 text-xs sm:text-sm">
+              <p className="text-gray-300 text-sm">
                 Rotate tiles to connect Start to End with valid paths
               </p>
             </motion.div>
@@ -71,18 +71,18 @@ export default function EliminationPage() {
           <Link href="/rounds/elimination/games/expression">
             <motion.div
               whileHover={{ scale: 1.02, y: -5 }}
-              className="glass rounded-xl sm:rounded-2xl p-6 sm:p-8 cursor-pointer h-full"
+              className="glass rounded-2xl p-8 cursor-pointer h-full"
             >
-              <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-blue-500 flex-shrink-0">
-                  <Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 rounded-xl bg-blue-500">
+                  <Gamepad2 className="w-8 h-8 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold">Expression Ordering</h3>
-                  <p className="text-xs sm:text-sm text-gray-400">Game 2 - 15 Questions</p>
+                <div>
+                  <h3 className="text-xl font-bold">Expression Ordering</h3>
+                  <p className="text-sm text-gray-400">Game 2 - 15 Questions</p>
                 </div>
               </div>
-              <p className="text-gray-300 text-xs sm:text-sm">
+              <p className="text-gray-300 text-sm">
                 Drag and drop expressions in ascending order
               </p>
             </motion.div>
@@ -92,18 +92,18 @@ export default function EliminationPage() {
           <Link href="/rounds/elimination/games/maze">
             <motion.div
               whileHover={{ scale: 1.02, y: -5 }}
-              className="glass rounded-xl sm:rounded-2xl p-6 sm:p-8 cursor-pointer h-full"
+              className="glass rounded-2xl p-8 cursor-pointer h-full"
             >
-              <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <div className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-600 flex-shrink-0">
-                  <Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="p-3 rounded-xl bg-purple-600">
+                  <Gamepad2 className="w-8 h-8 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold">Hidden Path Maze</h3>
-                  <p className="text-xs sm:text-sm text-gray-400">Game 3</p>
+                <div>
+                  <h3 className="text-xl font-bold">Hidden Path Maze</h3>
+                  <p className="text-sm text-gray-400">Game 3</p>
                 </div>
               </div>
-              <p className="text-gray-300 text-xs sm:text-sm">
+              <p className="text-gray-300 text-sm">
                 Navigate grid, collect key, find exit - walls revealed as you explore
               </p>
             </motion.div>

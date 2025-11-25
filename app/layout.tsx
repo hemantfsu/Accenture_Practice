@@ -8,19 +8,6 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Accenture Mock Prep - Premium Assessment Platform',
   description: 'Interactive gamified mock tests for Accenture placement preparation',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-    viewportFit: 'cover',
-  },
-  themeColor: '#6c46ff',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Accenture Prep',
-  },
 }
 
 export default function RootLayout({
