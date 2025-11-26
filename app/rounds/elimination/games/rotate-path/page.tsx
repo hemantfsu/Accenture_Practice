@@ -382,11 +382,11 @@ export default function RotatePathGame() {
                 </div>
               </div>
               <div className="flex gap-4">
-                <button onClick={resetGame} className="flex-1 px-6 py-3 rounded-xl glass hover:bg-white/10">
+                <button onClick={resetGame} className="flex-1 px-6 py-3 rounded-xl glass hover:bg-white/10 transition-colors">
                   Play Again
                 </button>
                 <Link href="/rounds/elimination" className="flex-1">
-                  <button className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600">
+                  <button className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity">
                     Continue
                   </button>
                 </Link>

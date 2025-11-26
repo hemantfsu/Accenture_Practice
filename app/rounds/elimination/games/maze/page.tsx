@@ -338,15 +338,57 @@ export default function HiddenMazeGame() {
                   <p className="text-2xl font-bold">{formatTime(1200 - timeLeft)}</p>
                 </div>
               </div>
-              <div className="flex gap-4">
-                <button onClick={resetGame} className="flex-1 px-6 py-3 rounded-xl glass hover:bg-white/10">
-                  Play Again
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <button 
+                  onClick={() => changeDifficulty(difficulty)} 
+                  className="px-6 py-3 rounded-xl glass hover:bg-white/10 transition-colors"
+                >
+                  Play Again (Same Level)
                 </button>
-                <Link href="/rounds/elimination" className="flex-1">
-                  <button className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600">
+                <Link href="/rounds/elimination" className="w-full">
+                  <button className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity">
                     Continue
                   </button>
                 </Link>
+              </div>
+              
+              <div className="border-t border-white/10 pt-6">
+                <p className="text-sm text-gray-400 mb-3">Change Difficulty Level:</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => changeDifficulty('easy')}
+                    disabled={difficulty === 'easy'}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      difficulty === 'easy'
+                        ? 'bg-green-500/20 border-2 border-green-500 cursor-not-allowed'
+                        : 'glass hover:bg-white/10'
+                    }`}
+                  >
+                    Easy
+                  </button>
+                  <button
+                    onClick={() => changeDifficulty('medium')}
+                    disabled={difficulty === 'medium'}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      difficulty === 'medium'
+                        ? 'bg-yellow-500/20 border-2 border-yellow-500 cursor-not-allowed'
+                        : 'glass hover:bg-white/10'
+                    }`}
+                  >
+                    Medium
+                  </button>
+                  <button
+                    onClick={() => changeDifficulty('hard')}
+                    disabled={difficulty === 'hard'}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      difficulty === 'hard'
+                        ? 'bg-red-500/20 border-2 border-red-500 cursor-not-allowed'
+                        : 'glass hover:bg-white/10'
+                    }`}
+                  >
+                    Hard
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>

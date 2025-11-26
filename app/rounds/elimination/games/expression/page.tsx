@@ -246,11 +246,40 @@ export default function ExpressionOrderingGame() {
                 <p className="text-3xl font-bold">{formatTime(totalTimeSpent)}</p>
               </div>
             </div>
-            <Link href="/rounds/elimination">
-              <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg">
-                Continue
+            <div className="flex gap-4 mb-6">
+              <button 
+                onClick={() => changeDifficulty(difficulty)}
+                className="flex-1 px-8 py-4 rounded-xl glass hover:bg-white/10 font-bold text-lg"
+              >
+                Play Again (Same Level)
               </button>
-            </Link>
+              <Link href="/rounds/elimination" className="flex-1">
+                <button className="w-full px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg">
+                  Continue
+                </button>
+              </Link>
+            </div>
+            
+            {/* Difficulty Change Options */}
+            <div className="glass rounded-xl p-4">
+              <p className="text-sm text-gray-400 mb-3">Try a different difficulty:</p>
+              <div className="flex gap-2">
+                {(['easy', 'medium', 'hard'] as const).map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => changeDifficulty(level)}
+                    disabled={level === difficulty}
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                      level === difficulty
+                        ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg'
+                    }`}
+                  >
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
           </motion.div>
         </div>
       </main>
