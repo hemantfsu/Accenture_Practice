@@ -12,58 +12,101 @@ interface Cell {
   discovered: boolean
 }
 
-const GRID_SIZE = 5 // 5x5 maze as specified
+const GRID_SIZE = 6 // Increased to 6x6 for more challenge
 
-// Generate the specific maze layout
-const generateMaze = (): Cell[][] => {
-  // Initialize empty maze
+// Generate maze with difficulty levels
+const generateMaze = (difficulty: 'easy' | 'medium' | 'hard' = 'medium'): Cell[][] => {
   const maze: Cell[][] = Array(GRID_SIZE).fill(0).map(() =>
     Array(GRID_SIZE).fill(0).map(() => ({ type: 'empty' as CellType, discovered: false }))
   )
   
-  // Specific layout based on provided map
-  // C1  C2  C3  C4  C5
-  // R1 [ S ][ . ][ . ][ . ][ . ]
-  // R2 [ . ][ X ][ - ][ X ][ - ]
-  // R3 [ . ][ . ][ K ][ . ][ . ]
-  // R4 [ X ][ . ][ X ][ . ][ . ]
-  // R5 [ . ][ . ][ - ][ X ][ E ]
+  // Set start (top-left) and exit (bottom-right)
+  maze[0][0] = { type: 'player', discovered: true }
+  maze[GRID_SIZE - 1][GRID_SIZE - 1] = { type: 'exit', discovered: false }
   
-  // Row 1 (index 0) - All empty except Start
-  maze[0][0] = { type: 'player', discovered: true } // Start position S at (1,1)
-  // Rest are empty (default)
+  // Place key at a strategic position based on difficulty
+  let keyRow, keyCol
+  if (difficulty === 'easy') {
+    keyRow = Math.floor(GRID_SIZE / 2)
+    keyCol = Math.floor(GRID_SIZE / 2)
+  } else if (difficulty === 'medium') {
+    keyRow = Math.floor(GRID_SIZE / 3)
+    keyCol = Math.floor(GRID_SIZE * 2 / 3)
+  } else {
+    keyRow = GRID_SIZE - 2
+    keyCol = 1
+  }
+  maze[keyRow][keyCol] = { type: 'key', discovered: false }
   
-  // Row 2 (index 1)
-  maze[1][1] = { type: 'wall', discovered: false } // X at (2,2)
-  maze[1][2] = { type: 'wall', discovered: false } // - at (2,3)
-  maze[1][3] = { type: 'wall', discovered: false } // X at (2,4)
-  maze[1][4] = { type: 'wall', discovered: false } // - at (2,5)
+  // Place walls based on difficulty
+  let wallCount = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 8 : 12
+  let wallsPlaced = 0
   
-  // Row 3 (index 2) - All empty except Key
-  maze[2][2] = { type: 'key', discovered: false } // Key K at (3,3)
-  // Rest are empty (default)
-  
-  // Row 4 (index 3)
-  maze[3][0] = { type: 'wall', discovered: false } // X at (4,1)
-  maze[3][2] = { type: 'wall', discovered: false } // X at (4,3)
-  // (4,2), (4,4), (4,5) are empty
-  
-  // Row 5 (index 4)
-  maze[4][2] = { type: 'wall', discovered: false } // - at (5,3)
-  maze[4][3] = { type: 'wall', discovered: false } // X at (5,4)
-  maze[4][4] = { type: 'exit', discovered: false } // Exit E at (5,5)
-  // (5,1), (5,2) are empty
+  while (wallsPlaced < wallCount) {
+    const row = Math.floor(Math.random() * GRID_SIZE)
+    const col = Math.floor(Math.random() * GRID_SIZE)
+    
+    // Don't place walls on start, exit, key, or already occupied cells
+    if (maze[row][col].type === 'empty' && 
+        !(row === 0 && col === 0) && 
+        !(row === GRID_SIZE - 1 && col === GRID_SIZE - 1)) {
+      
+      // Ensure there's still a path to key and exit
+      maze[row][col] = { type: 'wall', discovered: false }
+      
+      // Simple check: make sure we can still reach key and exit
+      if (canReachTargets(maze, keyRow, keyCol)) {
+        wallsPlaced++
+      } else {
+        maze[row][col] = { type: 'empty', discovered: false }
+      }
+    }
+  }
   
   return maze
 }
 
+// BFS to check if targets are reachable
+const canReachTargets = (maze: Cell[][], keyRow: number, keyCol: number): boolean => {
+  const visited = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(false))
+  const queue: [number, number][] = [[0, 0]]
+  visited[0][0] = true
+  let keyReachable = false
+  let exitReachable = false
+  
+  while (queue.length > 0) {
+    const [row, col] = queue.shift()!
+    
+    if (row === keyRow && col === keyCol) keyReachable = true
+    if (row === GRID_SIZE - 1 && col === GRID_SIZE - 1) exitReachable = true
+    
+    const directions = [[-1, 0], [0, 1], [1, 0], [0, -1]]
+    for (const [dr, dc] of directions) {
+      const newRow = row + dr
+      const newCol = col + dc
+      
+      if (newRow >= 0 && newRow < GRID_SIZE && 
+          newCol >= 0 && newCol < GRID_SIZE && 
+          !visited[newRow][newCol] && 
+          maze[newRow][newCol].type !== 'wall') {
+        visited[newRow][newCol] = true
+        queue.push([newRow, newCol])
+      }
+    }
+  }
+  
+  return keyReachable && exitReachable
+}
+
 export default function HiddenMazeGame() {
-  const [maze, setMaze] = useState<Cell[][]>(generateMaze())
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
+  const [maze, setMaze] = useState<Cell[][]>(() => generateMaze('medium'))
   const [playerPos, setPlayerPos] = useState({ row: 0, col: 0 })
   const [hasKey, setHasKey] = useState(false)
   const [moves, setMoves] = useState(0)
   const [isWon, setIsWon] = useState(false)
-  const [keyCollected, setKeyCollected] = useState(false) // Track if key was picked up from its cell
+  const [keyCollected, setKeyCollected] = useState(false)
+  const [wallHits, setWallHits] = useState(0)
   const [timeLeft, setTimeLeft] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('game-timer-remaining')
@@ -128,15 +171,27 @@ export default function HiddenMazeGame() {
     
     const targetCell = maze[newRow][newCol]
     
-    // Hit a wall - reset to start and lose key (wall stays hidden)
+    // Hit a wall - reset to start and lose key
     if (targetCell.type === 'wall') {
       setPlayerPos({ row: 0, col: 0 })
       setHasKey(false)
       setKeyCollected(false)
       setMoves(moves + 1)
+      setWallHits(wallHits + 1)
       
-      // Regenerate maze to reset everything
-      const newMaze = generateMaze()
+      // Mark the wall cell as discovered so player learns
+      const newMaze = maze.map((row, i) =>
+        row.map((cell, j) => {
+          if (i === newRow && j === newCol && cell.type === 'wall') {
+            return { ...cell, discovered: true, type: 'discovered-wall' as CellType }
+          }
+          // Reset player's previous path but keep discovered walls
+          if (cell.type !== 'wall' && cell.type !== 'discovered-wall' && cell.type !== 'key' && cell.type !== 'exit') {
+            return { ...cell, discovered: i === 0 && j === 0 } // Only keep start discovered
+          }
+          return cell
+        })
+      )
       setMaze(newMaze)
       return
     }
@@ -181,11 +236,25 @@ export default function HiddenMazeGame() {
   }
 
   const resetGame = () => {
-    setMaze(generateMaze())
+    const newMaze = generateMaze(difficulty)
+    setMaze(newMaze)
     setPlayerPos({ row: 0, col: 0 })
     setHasKey(false)
     setKeyCollected(false)
     setMoves(0)
+    setWallHits(0)
+    setIsWon(false)
+  }
+  
+  const changeDifficulty = (newDifficulty: 'easy' | 'medium' | 'hard') => {
+    setDifficulty(newDifficulty)
+    const newMaze = generateMaze(newDifficulty)
+    setMaze(newMaze)
+    setPlayerPos({ row: 0, col: 0 })
+    setHasKey(false)
+    setKeyCollected(false)
+    setMoves(0)
+    setWallHits(0)
     setIsWon(false)
   }
 
@@ -229,6 +298,24 @@ export default function HiddenMazeGame() {
         <div className="text-center mb-6">
           <h1 className="text-4xl font-bold mb-2 gradient-text">Hidden Maze</h1>
           <p className="text-gray-400">Navigate the hidden maze • Find the key • Reach the exit</p>
+          
+          {/* Difficulty Selector */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <span className="text-sm text-gray-400">Difficulty:</span>
+            {(['easy', 'medium', 'hard'] as const).map((level) => (
+              <button
+                key={level}
+                onClick={() => changeDifficulty(level)}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                  difficulty === level
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg'
+                    : 'glass hover:bg-white/10'
+                }`}
+              >
+                {level.charAt(0).toUpperCase() + level.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Win Modal */}
@@ -371,7 +458,12 @@ export default function HiddenMazeGame() {
                   // Check if player is at this position
                   const isPlayer = playerPos.row === i && playerPos.col === j
                   
-                  if (isPlayer) {
+                  // Show discovered walls
+                  if (cell.type === 'discovered-wall') {
+                    bgColor = 'bg-gradient-to-br from-red-500 to-red-600'
+                    shadowClass = 'shadow-lg shadow-red-500/50'
+                    content = <span className="text-2xl">🚫</span>
+                  } else if (isPlayer) {
                     bgColor = 'bg-gradient-to-br from-blue-500 to-blue-600'
                     shadowClass = 'shadow-lg shadow-blue-500/50'
                     content = (
@@ -507,10 +599,18 @@ export default function HiddenMazeGame() {
                   <span className="text-2xl font-bold text-purple-400">{moves}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 glass rounded-xl">
+                  <span className="text-gray-400">Wall Hits</span>
+                  <span className="text-2xl font-bold text-red-400">{wallHits}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 glass rounded-xl">
                   <span className="text-gray-400">Key Status</span>
                   <span className={`font-bold ${hasKey ? 'text-green-400' : 'text-yellow-400'}`}>
                     {hasKey ? '✓ Collected' : '✗ Not Found'}
                   </span>
+                </div>
+                <div className="flex items-center justify-between p-3 glass rounded-xl">
+                  <span className="text-gray-400">Difficulty</span>
+                  <span className="font-bold text-purple-400 capitalize">{difficulty}</span>
                 </div>
               </div>
             </div>

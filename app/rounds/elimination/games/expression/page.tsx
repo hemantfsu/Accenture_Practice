@@ -19,36 +19,74 @@ interface Question {
   expressions: Expression[]
 }
 
-// Generate 15 questions with fractions and decimals (optimized for performance)
-const generateQuestions = (): Question[] => {
+// Generate questions with difficulty levels
+const generateQuestions = (difficulty: 'easy' | 'medium' | 'hard' = 'medium'): Question[] => {
   const questions: Question[] = []
+  const questionCount = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 15 : 20
+  const itemsPerQuestion = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 4 : 5
   
-  for (let i = 1; i <= 15; i++) {
+  for (let i = 1; i <= questionCount; i++) {
     const expressions: Expression[] = []
     
-    // Generate 3 random expressions
-    const values: number[] = []
-    for (let j = 0; j < 3; j++) {
-      if (Math.random() > 0.5) {
-        // Fraction
-        const num = Math.floor(Math.random() * 9) + 1
-        const den = Math.floor(Math.random() * 9) + 1
-        const val = num / den
-        values.push(val)
+    // Generate expressions based on difficulty
+    for (let j = 0; j < itemsPerQuestion; j++) {
+      if (difficulty === 'easy') {
+        // Easy: Simple integers
+        const val = Math.floor(Math.random() * 100)
         expressions.push({
           id: `${i}-${j}`,
           value: val,
-          display: `${num}/${den}`
+          display: val.toString()
         })
+      } else if (difficulty === 'medium') {
+        // Medium: Mix of fractions and decimals
+        if (Math.random() > 0.5) {
+          const num = Math.floor(Math.random() * 9) + 1
+          const den = Math.floor(Math.random() * 9) + 1
+          const val = num / den
+          expressions.push({
+            id: `${i}-${j}`,
+            value: val,
+            display: `${num}/${den}`
+          })
+        } else {
+          const val = Math.random() * 10
+          expressions.push({
+            id: `${i}-${j}`,
+            value: val,
+            display: val.toFixed(2)
+          })
+        }
       } else {
-        // Decimal
-        const val = Math.random() * 10
-        values.push(val)
-        expressions.push({
-          id: `${i}-${j}`,
-          value: val,
-          display: val.toFixed(2)
-        })
+        // Hard: Complex fractions, decimals, and percentages
+        const typeChoice = Math.random()
+        if (typeChoice < 0.4) {
+          // Fraction
+          const num = Math.floor(Math.random() * 20) + 1
+          const den = Math.floor(Math.random() * 20) + 1
+          const val = num / den
+          expressions.push({
+            id: `${i}-${j}`,
+            value: val,
+            display: `${num}/${den}`
+          })
+        } else if (typeChoice < 0.7) {
+          // Decimal
+          const val = Math.random() * 50
+          expressions.push({
+            id: `${i}-${j}`,
+            value: val,
+            display: val.toFixed(3)
+          })
+        } else {
+          // Percentage
+          const val = Math.random() * 2
+          expressions.push({
+            id: `${i}-${j}`,
+            value: val,
+            display: `${(val * 100).toFixed(1)}%`
+          })
+        }
       }
     }
     
@@ -87,13 +125,15 @@ function SortableItem({ id, display }: { id: string, display: string }) {
 }
 
 export default function ExpressionOrderingGame() {
-  const [questions] = useState<Question[]>(generateQuestions())
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
+  const [questions, setQuestions] = useState<Question[]>(() => generateQuestions('medium'))
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [items, setItems] = useState<Expression[]>(questions[0].expressions)
   const [answers, setAnswers] = useState<Expression[][]>([])
   const [isComplete, setIsComplete] = useState(false)
-  const [questionTimeLeft, setQuestionTimeLeft] = useState(15) // 15 seconds per question
+  const [questionTimeLeft, setQuestionTimeLeft] = useState(15)
   const [totalTimeSpent, setTotalTimeSpent] = useState(0)
+  const [score, setScore] = useState(0)
 
   // Timer for each question (15 seconds)
   useEffect(() => {
@@ -127,6 +167,16 @@ export default function ExpressionOrderingGame() {
   }
 
   const submitAnswer = () => {
+    // Check if current answer is correct
+    const isCorrect = items.every((item, index) => {
+      if (index === 0) return true
+      return item.value >= items[index - 1].value
+    })
+    
+    if (isCorrect) {
+      setScore(score + 1)
+    }
+    
     // Save current answer
     const newAnswers = [...answers]
     newAnswers[currentQuestion] = items
@@ -136,25 +186,29 @@ export default function ExpressionOrderingGame() {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
     } else {
-      // Calculate final score
-      let finalScore = 0
-      newAnswers.forEach((answer, idx) => {
-        const isCorrect = answer.every((item, index) => {
-          if (index === 0) return true
-          return item.value >= answer[index - 1].value
-        })
-        if (isCorrect) finalScore++
-      })
-      
       setIsComplete(true)
       if (typeof window !== 'undefined') {
         localStorage.setItem('expression-ordering-completed', JSON.stringify({ 
-          score: finalScore, 
+          score: isCorrect ? score + 1 : score, 
           total: questions.length,
-          time: totalTimeSpent 
+          time: totalTimeSpent,
+          difficulty 
         }))
       }
     }
+  }
+  
+  const changeDifficulty = (newDifficulty: 'easy' | 'medium' | 'hard') => {
+    const newQuestions = generateQuestions(newDifficulty)
+    setDifficulty(newDifficulty)
+    setQuestions(newQuestions)
+    setCurrentQuestion(0)
+    setItems(newQuestions[0].expressions)
+    setAnswers([])
+    setScore(0)
+    setQuestionTimeLeft(15)
+    setTotalTimeSpent(0)
+    setIsComplete(false)
   }
 
   const formatTime = (seconds: number) => {
@@ -164,17 +218,7 @@ export default function ExpressionOrderingGame() {
   }
 
   if (isComplete) {
-    // Calculate final score from saved answers
-    let finalScore = 0
-    answers.forEach((answer, idx) => {
-      const isCorrect = answer.every((item, index) => {
-        if (index === 0) return true
-        return item.value >= answer[index - 1].value
-      })
-      if (isCorrect) finalScore++
-    })
-    
-    const percentage = Math.round((finalScore / questions.length) * 100)
+    const percentage = Math.round((score / questions.length) * 100)
     
     return (
       <main className="min-h-screen px-4 py-12">
@@ -191,7 +235,7 @@ export default function ExpressionOrderingGame() {
             <div className="grid grid-cols-3 gap-6 mb-8">
               <div className="glass rounded-xl p-4">
                 <p className="text-gray-400 text-sm mb-1">Score</p>
-                <p className="text-3xl font-bold">{finalScore}/{questions.length}</p>
+                <p className="text-3xl font-bold">{score}/{questions.length}</p>
               </div>
               <div className="glass rounded-xl p-4">
                 <p className="text-gray-400 text-sm mb-1">Accuracy</p>
@@ -245,6 +289,24 @@ export default function ExpressionOrderingGame() {
           <h1 className="text-5xl font-bold mb-4 gradient-text">Expression Ordering</h1>
           <p className="text-gray-400">Arrange expressions in ascending order</p>
           <p className="text-sm text-gray-500 mt-2">Question {currentQuestion + 1} of {questions.length} • 15 seconds per question</p>
+          
+          {/* Difficulty Selector */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <span className="text-sm text-gray-400">Difficulty:</span>
+            {(['easy', 'medium', 'hard'] as const).map((level) => (
+              <button
+                key={level}
+                onClick={() => changeDifficulty(level)}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                  difficulty === level
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg'
+                    : 'glass hover:bg-white/10'
+                }`}
+              >
+                {level.charAt(0).toUpperCase() + level.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Progress Bar */}

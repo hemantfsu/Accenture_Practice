@@ -15,68 +15,123 @@ interface Tile {
 
 const GRID_SIZE = 5 // Optimized grid size
 
-// Generate a more solvable puzzle with guaranteed path
+// Generate a guaranteed solvable puzzle
 const generatePuzzle = (): Tile[][] => {
   const grid: Tile[][] = []
   
-  // Initialize with random tiles
+  // Initialize empty grid
   for (let i = 0; i < GRID_SIZE; i++) {
     grid[i] = []
     for (let j = 0; j < GRID_SIZE; j++) {
-      const types: TileType[] = ['─', '│', '┘', '└', '┐', '┌']
-      const randomType = types[Math.floor(Math.random() * types.length)]
-      const randomRotation = [0, 90, 180, 270][Math.floor(Math.random() * 4)]
-      
       grid[i][j] = {
-        type: randomType,
-        rotation: randomRotation,
+        type: '─',
+        rotation: 0,
         isPath: false
       }
     }
   }
   
-  // Set start (top-left) and end (bottom-right)
-  grid[0][0] = { type: 'S', rotation: 0, isPath: true }
+  // Set start and end
+  grid[0][0] = { type: 'S', rotation: 0, isPath: false }
   grid[GRID_SIZE - 1][GRID_SIZE - 1] = { type: 'E', rotation: 0, isPath: false }
   
-  // Create a guaranteed solution path (but rotated randomly)
-  // This ensures the puzzle is always solvable
+  // Create a valid solution path using simple snake pattern
+  const path: [number, number][] = [[0, 0]]
   let row = 0, col = 0
-  while (row < GRID_SIZE - 1 || col < GRID_SIZE - 1) {
-    if (row === 0 && col === 0) {
-      // Start already set
-      if (Math.random() > 0.5 && col < GRID_SIZE - 1) {
-        col++
-      } else if (row < GRID_SIZE - 1) {
-        row++
-      }
+  
+  // Build path to the end
+  while (row !== GRID_SIZE - 1 || col !== GRID_SIZE - 1) {
+    const canGoRight = col < GRID_SIZE - 1
+    const canGoDown = row < GRID_SIZE - 1
+    
+    // Prefer alternating pattern for better puzzles
+    if (canGoRight && (!canGoDown || (row % 2 === 0 && col < GRID_SIZE - 1))) {
+      col++
+    } else if (canGoDown) {
+      row++
+    } else if (canGoRight) {
+      col++
+    }
+    
+    path.push([row, col])
+  }
+  
+  // Set correct tile types based on path
+  for (let i = 0; i < path.length; i++) {
+    const [row, col] = path[i]
+    
+    if (grid[row][col].type === 'S' || grid[row][col].type === 'E') {
       continue
     }
     
-    if (row === GRID_SIZE - 1 && col === GRID_SIZE - 1) {
-      // End already set
-      break
+    const prev = i > 0 ? path[i - 1] : null
+    const next = i < path.length - 1 ? path[i + 1] : null
+    
+    let fromDir = ''
+    let toDir = ''
+    
+    if (prev) {
+      if (prev[0] < row) fromDir = 'top'
+      else if (prev[0] > row) fromDir = 'bottom'
+      else if (prev[1] < col) fromDir = 'left'
+      else fromDir = 'right'
     }
     
-    // Decide path direction (prefer moving towards end)
-    const canGoRight = col < GRID_SIZE - 1
-    const canGoDown = row < GRID_SIZE - 1
-    const goRight = canGoRight && (Math.random() > 0.4 || !canGoDown)
+    if (next) {
+      if (next[0] < row) toDir = 'top'
+      else if (next[0] > row) toDir = 'bottom'
+      else if (next[1] < col) toDir = 'left'
+      else toDir = 'right'
+    }
     
-    if (goRight) {
-      grid[row][col] = { type: '─', rotation: [0, 180][Math.floor(Math.random() * 2)], isPath: false }
-      col++
-    } else {
-      grid[row][col] = { type: '│', rotation: [0, 180][Math.floor(Math.random() * 2)], isPath: false }
-      row++
+    // Determine tile type based on directions
+    const dirs = [fromDir, toDir].sort().join('-')
+    
+    switch (dirs) {
+      case 'left-right':
+        grid[row][col].type = '─'
+        grid[row][col].rotation = 0
+        break
+      case 'bottom-top':
+        grid[row][col].type = '│'
+        grid[row][col].rotation = 0
+        break
+      case 'right-top':
+        grid[row][col].type = '└'
+        grid[row][col].rotation = 0
+        break
+      case 'left-top':
+        grid[row][col].type = '┘'
+        grid[row][col].rotation = 0
+        break
+      case 'bottom-right':
+        grid[row][col].type = '┌'
+        grid[row][col].rotation = 0
+        break
+      case 'bottom-left':
+        grid[row][col].type = '┐'
+        grid[row][col].rotation = 0
+        break
     }
   }
   
-  // Randomize rotations to make it a puzzle
+  // Fill empty tiles with random pipes
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      if (grid[i][j].type === '─' && !path.some(([r, c]) => r === i && c === j)) {
+        const types: TileType[] = ['─', '│', '┘', '└', '┐', '┌']
+        grid[i][j].type = types[Math.floor(Math.random() * types.length)]
+        grid[i][j].rotation = 0
+      }
+    }
+  }
+  
+  // Now randomize all rotations (except start and end) to create the puzzle
   for (let i = 0; i < GRID_SIZE; i++) {
     for (let j = 0; j < GRID_SIZE; j++) {
       if (grid[i][j].type !== 'S' && grid[i][j].type !== 'E') {
-        grid[i][j].rotation = [0, 90, 180, 270][Math.floor(Math.random() * 4)]
+        const rotations = [0, 90, 180, 270]
+        grid[i][j].rotation = rotations[Math.floor(Math.random() * rotations.length)]
       }
     }
   }
@@ -88,6 +143,7 @@ export default function RotatePathGame() {
   const [grid, setGrid] = useState<Tile[][]>(generatePuzzle())
   const [moves, setMoves] = useState(0)
   const [isWon, setIsWon] = useState(false)
+  const [showHint, setShowHint] = useState(false)
   const [timeLeft, setTimeLeft] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('game-timer-remaining')
@@ -242,6 +298,7 @@ export default function RotatePathGame() {
     setGrid(generatePuzzle())
     setMoves(0)
     setIsWon(false)
+    setShowHint(false)
   }
 
   const formatTime = (seconds: number) => {
@@ -271,8 +328,14 @@ export default function RotatePathGame() {
             }`}>
               {formatTime(timeLeft)}
             </div>
-            <button onClick={resetGame} className="glass p-2 rounded-full hover:bg-white/10">
+            <button onClick={resetGame} className="glass p-2 rounded-full hover:bg-white/10 transition-colors">
               <RefreshCw className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => setShowHint(!showHint)} 
+              className={`glass px-4 py-2 rounded-full hover:bg-white/10 transition-colors text-sm ${showHint ? 'bg-yellow-500/20 border border-yellow-500' : ''}`}
+            >
+              {showHint ? 'Hide Hint' : 'Show Hint'}
             </button>
           </div>
         </div>
@@ -281,6 +344,21 @@ export default function RotatePathGame() {
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold mb-4 gradient-text">Rotate Path Puzzle</h1>
           <p className="text-gray-400">Connect Start (S) to End (E) by rotating tiles</p>
+          {showHint && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 glass rounded-xl p-4 max-w-md mx-auto"
+            >
+              <p className="text-yellow-400 text-sm font-semibold mb-2">💡 Hint:</p>
+              <ul className="text-gray-300 text-sm text-left space-y-1">
+                <li>• Start has connections going RIGHT and DOWN</li>
+                <li>• End has connections coming from TOP and LEFT</li>
+                <li>• Look for tiles that can form corners in the path</li>
+                <li>• Try working backwards from the End to Start</li>
+              </ul>
+            </motion.div>
+          )}
         </div>
 
         {/* Win Modal */}
@@ -348,9 +426,10 @@ export default function RotatePathGame() {
           </h3>
           <ul className="text-gray-400 space-y-1 text-sm">
             <li>• Click tiles to rotate them 90° clockwise</li>
-            <li>• Connect the blue Start (S) to the purple End (E)</li>
+            <li>• Connect the blue Start (🎯) to the purple End (🏁)</li>
             <li>• Green highlight shows valid path connections</li>
-            <li>• Complete the puzzle in minimum moves!</li>
+            <li>• Every puzzle is guaranteed to be solvable!</li>
+            <li>• Use the hint button if you need help</li>
           </ul>
         </div>
 
