@@ -107,13 +107,19 @@ export default function HiddenMazeGame() {
   const [isWon, setIsWon] = useState(false)
   const [keyCollected, setKeyCollected] = useState(false)
   const [wallHits, setWallHits] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(() => {
+  const [mounted, setMounted] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(20 * 60)
+
+  // Initialize from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true)
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('game-timer-remaining')
-      return saved ? parseInt(saved) : 20 * 60
+      if (saved) {
+        setTimeLeft(parseInt(saved))
+      }
     }
-    return 20 * 60
-  })
+  }, [])
 
   useEffect(() => {
     if (!isWon && timeLeft > 0) {

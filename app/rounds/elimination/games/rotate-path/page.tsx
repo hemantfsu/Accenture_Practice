@@ -163,13 +163,19 @@ export default function RotatePathGame() {
   const [showHint, setShowHint] = useState(false)
   const [startTime, setStartTime] = useState(Date.now())
   const [timeTaken, setTimeTaken] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(() => {
+  const [mounted, setMounted] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(20 * 60)
+
+  // Initialize from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true)
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('game-timer-remaining')
-      return saved ? parseInt(saved) : 20 * 60 // 20 minutes for all games combined
+      if (saved) {
+        setTimeLeft(parseInt(saved))
+      }
     }
-    return 20 * 60
-  })
+  }, [])
 
   // Update timer for overall game time limit
   useEffect(() => {
