@@ -17,17 +17,91 @@ interface Tile {
 const getDifficultySettings = (difficulty: Difficulty) => {
   switch (difficulty) {
     case 'easy':
-      return { gridSize: 4, randomRotations: 2 } // 4x4 grid, easier
+      return { gridSize: 4, minPathLength: 8, pathComplexity: 0.3 }
     case 'medium':
-      return { gridSize: 5, randomRotations: 3 } // 5x5 grid, medium
+      return { gridSize: 5, minPathLength: 12, pathComplexity: 0.5 }
     case 'hard':
-      return { gridSize: 6, randomRotations: 4 } // 6x6 grid, harder
+      return { gridSize: 6, minPathLength: 18, pathComplexity: 0.7 }
   }
+}
+
+// Shuffle array helper
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
+// Generate a random path using DFS with randomization
+const generateRandomPath = (gridSize: number, minLength: number, complexity: number): [number, number][] => {
+  const visited = Array(gridSize).fill(null).map(() => Array(gridSize).fill(false))
+  const path: [number, number][] = []
+  
+  // Start from (0,0) and end at (gridSize-1, gridSize-1)
+  const dfs = (row: number, col: number, targetRow: number, targetCol: number): boolean => {
+    if (row < 0 || row >= gridSize || col < 0 || col >= gridSize || visited[row][col]) {
+      return false
+    }
+    
+    visited[row][col] = true
+    path.push([row, col])
+    
+    // Reached the target
+    if (row === targetRow && col === targetCol) {
+      return true
+    }
+    
+    // Add complexity by sometimes taking non-optimal paths
+    const directions: [number, number][] = [
+      [-1, 0], // up
+      [0, 1],  // right
+      [1, 0],  // down
+      [0, -1]  // left
+    ]
+    
+    // Calculate distance to target for each direction
+    const directionsWithPriority = directions.map(([dr, dc]) => {
+      const newRow = row + dr
+      const newCol = col + dc
+      const distanceToTarget = Math.abs(newRow - targetRow) + Math.abs(newCol - targetCol)
+      // Add randomness based on complexity
+      const priority = distanceToTarget + (Math.random() < complexity ? Math.random() * gridSize : 0)
+      return { dr, dc, priority }
+    })
+    
+    // Sort by priority (lower is better) but with randomization
+    const sortedDirections = shuffleArray(directionsWithPriority)
+      .sort((a, b) => a.priority - b.priority)
+    
+    for (const { dr, dc } of sortedDirections) {
+      if (dfs(row + dr, col + dc, targetRow, targetCol)) {
+        return true
+      }
+    }
+    
+    // Backtrack
+    path.pop()
+    visited[row][col] = false
+    return false
+  }
+  
+  // Generate path
+  dfs(0, 0, gridSize - 1, gridSize - 1)
+  
+  // If path is too short, regenerate
+  if (path.length < minLength) {
+    return generateRandomPath(gridSize, minLength, complexity)
+  }
+  
+  return path
 }
 
 // Generate a guaranteed solvable puzzle with varying difficulty
 const generatePuzzle = (difficulty: Difficulty): Tile[][] => {
-  const { gridSize, randomRotations } = getDifficultySettings(difficulty)
+  const { gridSize, minPathLength, pathComplexity } = getDifficultySettings(difficulty)
   const grid: Tile[][] = []
   
   // Initialize empty grid
@@ -46,26 +120,8 @@ const generatePuzzle = (difficulty: Difficulty): Tile[][] => {
   grid[0][0] = { type: 'S', rotation: 0, isPath: false }
   grid[gridSize - 1][gridSize - 1] = { type: 'E', rotation: 0, isPath: false }
   
-  // Create a valid solution path using simple snake pattern
-  const path: [number, number][] = [[0, 0]]
-  let row = 0, col = 0
-  
-  // Build path to the end
-  while (row !== gridSize - 1 || col !== gridSize - 1) {
-    const canGoRight = col < gridSize - 1
-    const canGoDown = row < gridSize - 1
-    
-    // Prefer alternating pattern for better puzzles
-    if (canGoRight && (!canGoDown || (row % 2 === 0 && col < gridSize - 1))) {
-      col++
-    } else if (canGoDown) {
-      row++
-    } else if (canGoRight) {
-      col++
-    }
-    
-    path.push([row, col])
-  }
+  // Generate a random path
+  const path = generateRandomPath(gridSize, minPathLength, pathComplexity)
   
   // Set correct tile types based on path
   for (let i = 0; i < path.length; i++) {
@@ -137,15 +193,22 @@ const generatePuzzle = (difficulty: Difficulty): Tile[][] => {
     }
   }
   
-  // Now randomize rotations based on difficulty (except start and end) to create the puzzle
+  // Randomize all rotations (except start and end) based on difficulty
   for (let i = 0; i < gridSize; i++) {
     for (let j = 0; j < gridSize; j++) {
       if (grid[i][j].type !== 'S' && grid[i][j].type !== 'E') {
         const rotations = [0, 90, 180, 270]
-        // For harder difficulties, ensure more tiles are rotated
-        const shouldRotate = Math.random() < (0.3 * randomRotations / 2)
-        if (shouldRotate || difficulty !== 'easy') {
-          grid[i][j].rotation = rotations[Math.floor(Math.random() * rotations.length)]
+        // Difficulty affects rotation probability
+        const rotationChance = pathComplexity // 0.3 for easy, 0.5 for medium, 0.7 for hard
+        
+        // For path tiles, always rotate them (otherwise puzzle is too easy)
+        const isOnPath = path.some(([r, c]) => r === i && c === j)
+        if (isOnPath || Math.random() < rotationChance) {
+          // Exclude 0 rotation for path tiles to make it challenging
+          const availableRotations = isOnPath 
+            ? rotations.filter(r => r !== 0) 
+            : rotations
+          grid[i][j].rotation = availableRotations[Math.floor(Math.random() * availableRotations.length)]
         }
       }
     }
@@ -410,7 +473,7 @@ export default function RotatePathGame() {
         {/* Title */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold mb-4 gradient-text">Rotate Path Puzzle</h1>
-          <p className="text-gray-400">Connect Start (S) to End (E) by rotating tiles</p>
+          <p className="text-gray-400">Connect Start (S) to End (E) by rotating tiles • Each puzzle has a unique random path!</p>
           {showHint && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
@@ -421,8 +484,9 @@ export default function RotatePathGame() {
               <ul className="text-gray-300 text-sm text-left space-y-1">
                 <li>• Start has connections going RIGHT and DOWN</li>
                 <li>• End has connections coming from TOP and LEFT</li>
-                <li>• Look for tiles that can form corners in the path</li>
-                <li>• Try working backwards from the End to Start</li>
+                <li>• Green highlighted tiles show the connected path</li>
+                <li>• Click tiles to rotate them 90° clockwise</li>
+                <li>• Try working from Start or End towards the middle</li>
               </ul>
             </motion.div>
           )}
