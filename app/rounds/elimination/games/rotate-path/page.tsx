@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, RotateCw, Award, RefreshCw } from 'lucide-react'
 
 type TileType = '─' | '│' | '┘' | '└' | '┐' | '┌' | 'S' | 'E'
+type Difficulty = 'easy' | 'medium' | 'hard'
 
 interface Tile {
   type: TileType
@@ -13,16 +14,26 @@ interface Tile {
   isPath: boolean
 }
 
-const GRID_SIZE = 5 // Optimized grid size
+const getDifficultySettings = (difficulty: Difficulty) => {
+  switch (difficulty) {
+    case 'easy':
+      return { gridSize: 4, randomRotations: 2 } // 4x4 grid, easier
+    case 'medium':
+      return { gridSize: 5, randomRotations: 3 } // 5x5 grid, medium
+    case 'hard':
+      return { gridSize: 6, randomRotations: 4 } // 6x6 grid, harder
+  }
+}
 
-// Generate a guaranteed solvable puzzle
-const generatePuzzle = (): Tile[][] => {
+// Generate a guaranteed solvable puzzle with varying difficulty
+const generatePuzzle = (difficulty: Difficulty): Tile[][] => {
+  const { gridSize, randomRotations } = getDifficultySettings(difficulty)
   const grid: Tile[][] = []
   
   // Initialize empty grid
-  for (let i = 0; i < GRID_SIZE; i++) {
+  for (let i = 0; i < gridSize; i++) {
     grid[i] = []
-    for (let j = 0; j < GRID_SIZE; j++) {
+    for (let j = 0; j < gridSize; j++) {
       grid[i][j] = {
         type: '─',
         rotation: 0,
@@ -33,19 +44,19 @@ const generatePuzzle = (): Tile[][] => {
   
   // Set start and end
   grid[0][0] = { type: 'S', rotation: 0, isPath: false }
-  grid[GRID_SIZE - 1][GRID_SIZE - 1] = { type: 'E', rotation: 0, isPath: false }
+  grid[gridSize - 1][gridSize - 1] = { type: 'E', rotation: 0, isPath: false }
   
   // Create a valid solution path using simple snake pattern
   const path: [number, number][] = [[0, 0]]
   let row = 0, col = 0
   
   // Build path to the end
-  while (row !== GRID_SIZE - 1 || col !== GRID_SIZE - 1) {
-    const canGoRight = col < GRID_SIZE - 1
-    const canGoDown = row < GRID_SIZE - 1
+  while (row !== gridSize - 1 || col !== gridSize - 1) {
+    const canGoRight = col < gridSize - 1
+    const canGoDown = row < gridSize - 1
     
     // Prefer alternating pattern for better puzzles
-    if (canGoRight && (!canGoDown || (row % 2 === 0 && col < GRID_SIZE - 1))) {
+    if (canGoRight && (!canGoDown || (row % 2 === 0 && col < gridSize - 1))) {
       col++
     } else if (canGoDown) {
       row++
@@ -116,8 +127,8 @@ const generatePuzzle = (): Tile[][] => {
   }
   
   // Fill empty tiles with random pipes
-  for (let i = 0; i < GRID_SIZE; i++) {
-    for (let j = 0; j < GRID_SIZE; j++) {
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
       if (grid[i][j].type === '─' && !path.some(([r, c]) => r === i && c === j)) {
         const types: TileType[] = ['─', '│', '┘', '└', '┐', '┌']
         grid[i][j].type = types[Math.floor(Math.random() * types.length)]
@@ -126,12 +137,16 @@ const generatePuzzle = (): Tile[][] => {
     }
   }
   
-  // Now randomize all rotations (except start and end) to create the puzzle
-  for (let i = 0; i < GRID_SIZE; i++) {
-    for (let j = 0; j < GRID_SIZE; j++) {
+  // Now randomize rotations based on difficulty (except start and end) to create the puzzle
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
       if (grid[i][j].type !== 'S' && grid[i][j].type !== 'E') {
         const rotations = [0, 90, 180, 270]
-        grid[i][j].rotation = rotations[Math.floor(Math.random() * rotations.length)]
+        // For harder difficulties, ensure more tiles are rotated
+        const shouldRotate = Math.random() < (0.3 * randomRotations / 2)
+        if (shouldRotate || difficulty !== 'easy') {
+          grid[i][j].rotation = rotations[Math.floor(Math.random() * rotations.length)]
+        }
       }
     }
   }
@@ -140,10 +155,14 @@ const generatePuzzle = (): Tile[][] => {
 }
 
 export default function RotatePathGame() {
-  const [grid, setGrid] = useState<Tile[][]>(generatePuzzle())
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy')
+  const [grid, setGrid] = useState<Tile[][]>(() => generatePuzzle('easy'))
+  const [gridSize, setGridSize] = useState(4)
   const [moves, setMoves] = useState(0)
   const [isWon, setIsWon] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const [startTime, setStartTime] = useState(Date.now())
+  const [timeTaken, setTimeTaken] = useState(0)
   const [timeLeft, setTimeLeft] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('game-timer-remaining')
@@ -152,6 +171,7 @@ export default function RotatePathGame() {
     return 20 * 60
   })
 
+  // Update timer for overall game time limit
   useEffect(() => {
     if (!isWon && timeLeft > 0) {
       const interval = setInterval(() => {
@@ -166,6 +186,16 @@ export default function RotatePathGame() {
       return () => clearInterval(interval)
     }
   }, [isWon, timeLeft])
+
+  // Track time taken for this specific puzzle
+  useEffect(() => {
+    if (!isWon) {
+      const interval = setInterval(() => {
+        setTimeTaken(Math.floor((Date.now() - startTime) / 1000))
+      }, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [isWon, startTime])
 
   useEffect(() => {
     checkPath()
@@ -238,7 +268,7 @@ export default function RotatePathGame() {
     if (isWon) return
     
     // BFS to find if path exists from S to E
-    const visited = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(false))
+    const visited = Array(gridSize).fill(null).map(() => Array(gridSize).fill(false))
     const queue: [number, number][] = [[0, 0]]
     visited[0][0] = true
     let pathFound = false
@@ -266,7 +296,7 @@ export default function RotatePathGame() {
         const newRow = row + dr
         const newCol = col + dc
         
-        if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE && !visited[newRow][newCol]) {
+        if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize && !visited[newRow][newCol]) {
           const neighborTile = grid[newRow][newCol]
           const neighborConnections = getConnections(neighborTile)
           
@@ -280,8 +310,10 @@ export default function RotatePathGame() {
     
     if (pathFound && !isWon) {
       setIsWon(true)
+      const finalTime = Math.floor((Date.now() - startTime) / 1000)
+      setTimeTaken(finalTime)
       if (typeof window !== 'undefined') {
-        localStorage.setItem('rotate-path-completed', JSON.stringify({ moves, time: 1200 - timeLeft }))
+        localStorage.setItem('rotate-path-completed', JSON.stringify({ moves, time: finalTime, difficulty }))
       }
     }
     
@@ -295,10 +327,26 @@ export default function RotatePathGame() {
   }
 
   const resetGame = () => {
-    setGrid(generatePuzzle())
+    const newGrid = generatePuzzle(difficulty)
+    setGrid(newGrid)
+    setGridSize(getDifficultySettings(difficulty).gridSize)
     setMoves(0)
     setIsWon(false)
     setShowHint(false)
+    setStartTime(Date.now())
+    setTimeTaken(0)
+  }
+
+  const changeDifficulty = (newDifficulty: Difficulty) => {
+    setDifficulty(newDifficulty)
+    const newGrid = generatePuzzle(newDifficulty)
+    setGrid(newGrid)
+    setGridSize(getDifficultySettings(newDifficulty).gridSize)
+    setMoves(0)
+    setIsWon(false)
+    setShowHint(false)
+    setStartTime(Date.now())
+    setTimeTaken(0)
   }
 
   const formatTime = (seconds: number) => {
@@ -320,15 +368,28 @@ export default function RotatePathGame() {
           
           <div className="flex items-center gap-4">
             <div className="glass px-4 py-2 rounded-full">
+              <span className="text-gray-400">Difficulty: </span>
+              <span className={`font-bold ${
+                difficulty === 'easy' ? 'text-green-400' : 
+                difficulty === 'medium' ? 'text-yellow-400' : 'text-red-400'
+              }`}>
+                {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+              </span>
+            </div>
+            <div className="glass px-4 py-2 rounded-full">
               <span className="text-gray-400">Moves: </span>
               <span className="font-bold">{moves}</span>
+            </div>
+            <div className="glass px-4 py-2 rounded-full">
+              <span className="text-gray-400">Time: </span>
+              <span className="font-bold font-mono">{formatTime(timeTaken)}</span>
             </div>
             <div className={`glass px-4 py-2 rounded-full font-mono ${
               timeLeft < 300 ? 'border-2 border-red-500 animate-pulse' : ''
             }`}>
-              {formatTime(timeLeft)}
+              Total: {formatTime(timeLeft)}
             </div>
-            <button onClick={resetGame} className="glass p-2 rounded-full hover:bg-white/10 transition-colors">
+            <button onClick={resetGame} className="glass p-2 rounded-full hover:bg-white/10 transition-colors" title="New Puzzle (Same Level)">
               <RefreshCw className="w-5 h-5" />
             </button>
             <button 
@@ -371,25 +432,77 @@ export default function RotatePathGame() {
             <div className="glass rounded-3xl p-12 text-center max-w-md">
               <Award className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
               <h2 className="text-4xl font-bold mb-4">Puzzle Solved!</h2>
-              <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="glass rounded-xl p-4">
+                  <p className="text-gray-400 text-sm">Difficulty</p>
+                  <p className={`text-2xl font-bold ${
+                    difficulty === 'easy' ? 'text-green-400' : 
+                    difficulty === 'medium' ? 'text-yellow-400' : 'text-red-400'
+                  }`}>
+                    {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                  </p>
+                </div>
                 <div className="glass rounded-xl p-4">
                   <p className="text-gray-400 text-sm">Moves</p>
                   <p className="text-2xl font-bold">{moves}</p>
                 </div>
-                <div className="glass rounded-xl p-4">
-                  <p className="text-gray-400 text-sm">Time</p>
-                  <p className="text-2xl font-bold">{formatTime(1200 - timeLeft)}</p>
+                <div className="glass rounded-xl p-4 col-span-2">
+                  <p className="text-gray-400 text-sm">Time Taken</p>
+                  <p className="text-2xl font-bold">{formatTime(timeTaken)}</p>
                 </div>
               </div>
-              <div className="flex gap-4">
-                <button onClick={resetGame} className="flex-1 px-6 py-3 rounded-xl glass hover:bg-white/10 transition-colors">
-                  Play Again
+              
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <button 
+                  onClick={resetGame} 
+                  className="px-6 py-3 rounded-xl glass hover:bg-white/10 transition-colors"
+                >
+                  New Puzzle (Same Level)
                 </button>
-                <Link href="/rounds/elimination" className="flex-1">
+                <Link href="/rounds/elimination" className="w-full">
                   <button className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 transition-opacity">
                     Continue
                   </button>
                 </Link>
+              </div>
+              
+              <div className="border-t border-white/10 pt-6">
+                <p className="text-sm text-gray-400 mb-3">Change Difficulty Level:</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => changeDifficulty('easy')}
+                    disabled={difficulty === 'easy'}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      difficulty === 'easy'
+                        ? 'bg-green-500/20 border-2 border-green-500 cursor-not-allowed'
+                        : 'glass hover:bg-white/10'
+                    }`}
+                  >
+                    Easy
+                  </button>
+                  <button
+                    onClick={() => changeDifficulty('medium')}
+                    disabled={difficulty === 'medium'}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      difficulty === 'medium'
+                        ? 'bg-yellow-500/20 border-2 border-yellow-500 cursor-not-allowed'
+                        : 'glass hover:bg-white/10'
+                    }`}
+                  >
+                    Medium
+                  </button>
+                  <button
+                    onClick={() => changeDifficulty('hard')}
+                    disabled={difficulty === 'hard'}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      difficulty === 'hard'
+                        ? 'bg-red-500/20 border-2 border-red-500 cursor-not-allowed'
+                        : 'glass hover:bg-white/10'
+                    }`}
+                  >
+                    Hard
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -397,7 +510,7 @@ export default function RotatePathGame() {
 
         {/* Game Grid */}
         <div className="glass rounded-3xl p-8 max-w-3xl mx-auto">
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}>
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}>
             {grid.map((row, i) =>
               row.map((tile, j) => (
                 <motion.button
