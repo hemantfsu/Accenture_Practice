@@ -2,6 +2,34 @@
 
 A modern Next.js application with interactive games and comprehensive assessment tools for Accenture placement preparation.
 
+## 📸 Screenshots
+
+### Home Page
+![Home Page](./docs/screenshots/home.png)
+
+### Round 1: Elimination Games
+
+#### Psychometric Test
+![Psychometric Test](./docs/screenshots/psychometric.png)
+
+#### Rotate Path Puzzle
+![Rotate Path Puzzle](./docs/screenshots/rotate-path.png)
+
+#### Expression Ordering Game
+![Expression Ordering](./docs/screenshots/expression-ordering.png)
+
+#### Hidden Maze Game
+![Hidden Maze](./docs/screenshots/maze.png)
+
+### Round 2: Technical MCQ
+![Technical MCQ](./docs/screenshots/technical-mcq.png)
+
+#### Answer Review
+![Answer Review](./docs/screenshots/answer-review.png)
+
+### Results Dashboard
+![Results Dashboard](./docs/screenshots/results.png)
+
 ## ✨ Features
 
 ### 🎯 Round 1: Elimination Round
