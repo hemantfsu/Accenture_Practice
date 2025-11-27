@@ -471,6 +471,27 @@ export default function TechnicalRound() {
   const [skipped, setSkipped] = useState<Set<number>>(new Set())
   const [timeLeft, setTimeLeft] = useState(45 * 60) // 45 minutes
   const [isComplete, setIsComplete] = useState(false)
+  const [showReview, setShowReview] = useState(false)
+
+  // Load saved results on mount
+  useEffect(() => {
+    const savedResults = localStorage.getItem('technical-results')
+    const savedAnswers = localStorage.getItem('technical-answers')
+    
+    if (savedResults) {
+      const results = JSON.parse(savedResults)
+      setIsComplete(true)
+      
+      // If coming from results page, show review automatically
+      if (typeof window !== 'undefined' && window.location.hash === '#review') {
+        setShowReview(true)
+      }
+    }
+    
+    if (savedAnswers) {
+      setAnswers(JSON.parse(savedAnswers))
+    }
+  }, [])
   
   const categories = ['All', 'Pseudocode', 'MS Office', 'Cloud', 'Networks', 'Cybersecurity']
   
@@ -556,18 +577,32 @@ export default function TechnicalRound() {
     // Calculate results
     let correct = 0
     const categoryScores: Record<string, { correct: number, total: number }> = {}
+    const detailedResults: Array<{
+      question: Question
+      userAnswer: number | undefined
+      isCorrect: boolean
+    }> = []
     
     questions.forEach((q) => {
       const userAnswer = answers[q.id]
-      if (userAnswer === q.correctAnswer) {
+      const isCorrect = userAnswer === q.correctAnswer
+      
+      if (isCorrect) {
         correct++
       }
+      
+      // Store detailed results for review
+      detailedResults.push({
+        question: q,
+        userAnswer,
+        isCorrect
+      })
       
       if (!categoryScores[q.category]) {
         categoryScores[q.category] = { correct: 0, total: 0 }
       }
       categoryScores[q.category].total++
-      if (userAnswer === q.correctAnswer) {
+      if (isCorrect) {
         categoryScores[q.category].correct++
       }
     })
@@ -577,7 +612,8 @@ export default function TechnicalRound() {
       total: questions.length,
       timeSpent: 2700 - timeLeft,
       categoryScores,
-      skippedCount: skipped.size
+      skippedCount: skipped.size,
+      detailedResults // Save detailed results for review
     }))
   }
 
@@ -595,6 +631,198 @@ export default function TechnicalRound() {
   if (isComplete) {
     const score = questions.filter((q) => answers[q.id] === q.correctAnswer).length
     const percentage = Math.round((score / questions.length) * 100)
+    
+    if (showReview) {
+      // Review mode - show all questions with answers
+      return (
+        <main className="min-h-screen px-4 py-8">
+          <div className="max-w-5xl mx-auto">
+            
+            {/* Review Header */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={() => setShowReview(false)}
+                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back to Results
+                </button>
+                <div className="glass px-4 py-2 rounded-full">
+                  <span className="text-gray-400">Score: </span>
+                  <span className="font-bold text-green-400">{score}/{questions.length}</span>
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold mb-2 gradient-text">Answer Review</h1>
+              <p className="text-gray-400">Review all questions and see the correct answers</p>
+              
+              {/* Filter by status */}
+              <div className="flex gap-2 mt-4">
+                <button className="px-4 py-2 rounded-lg glass text-sm">
+                  All Questions ({questions.length})
+                </button>
+                <button className="px-4 py-2 rounded-lg glass text-sm text-red-400 border border-red-500/30">
+                  Incorrect ({questions.filter(q => answers[q.id] !== q.correctAnswer).length})
+                </button>
+                <button className="px-4 py-2 rounded-lg glass text-sm text-green-400 border border-green-500/30">
+                  Correct ({score})
+                </button>
+                <button className="px-4 py-2 rounded-lg glass text-sm text-yellow-400 border border-yellow-500/30">
+                  Skipped ({Array.from(skipped).filter(id => answers[id] === undefined).length})
+                </button>
+              </div>
+            </div>
+
+            {/* Questions Review */}
+            <div className="space-y-6">
+              {questions.map((q, index) => {
+                const userAnswer = answers[q.id]
+                const isCorrect = userAnswer === q.correctAnswer
+                const isSkipped = userAnswer === undefined
+                const CategoryIcon = categoryIcons[q.category]
+                
+                return (
+                  <motion.div
+                    key={q.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={`glass rounded-2xl p-6 border-2 ${
+                      isSkipped ? 'border-yellow-500/30' :
+                      isCorrect ? 'border-green-500/30' : 'border-red-500/30'
+                    }`}
+                  >
+                    {/* Question Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                          isSkipped ? 'bg-yellow-500/20 text-yellow-400' :
+                          isCorrect ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CategoryIcon className="w-5 h-5 text-purple-400" />
+                          <span className="text-sm text-purple-400">{q.category}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        {isSkipped ? (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                            SKIPPED
+                          </span>
+                        ) : isCorrect ? (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+                            ✓ CORRECT
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
+                            ✗ WRONG
+                          </span>
+                        )}
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          q.difficulty === 'easy'
+                            ? 'bg-green-500 bg-opacity-30'
+                            : q.difficulty === 'medium'
+                            ? 'bg-yellow-500 bg-opacity-30'
+                            : 'bg-red-500 bg-opacity-30'
+                        }`}>
+                          {q.difficulty.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Question Text */}
+                    <h3 className="text-lg font-semibold mb-4 leading-relaxed">{q.question}</h3>
+
+                    {/* Options */}
+                    <div className="space-y-3">
+                      {q.options.map((option, optionIndex) => {
+                        const isUserAnswer = userAnswer === optionIndex
+                        const isCorrectAnswer = q.correctAnswer === optionIndex
+                        
+                        return (
+                          <div
+                            key={optionIndex}
+                            className={`p-4 rounded-xl border-2 transition-all ${
+                              isCorrectAnswer
+                                ? 'bg-green-500/10 border-green-500 shadow-lg shadow-green-500/20'
+                                : isUserAnswer && !isCorrect
+                                ? 'bg-red-500/10 border-red-500 shadow-lg shadow-red-500/20'
+                                : 'glass border-transparent'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3 flex-1">
+                                <span className="font-bold text-gray-400 mt-0.5">
+                                  {String.fromCharCode(65 + optionIndex)}.
+                                </span>
+                                <span className={`flex-1 ${
+                                  isCorrectAnswer ? 'font-bold text-green-400' :
+                                  isUserAnswer && !isCorrect ? 'font-bold text-red-400' : ''
+                                }`}>
+                                  {option}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {isCorrectAnswer && (
+                                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20">
+                                    <CheckCircle className="w-4 h-4 text-green-400" />
+                                    <span className="text-xs font-semibold text-green-400">Correct Answer</span>
+                                  </div>
+                                )}
+                                {isUserAnswer && !isCorrect && (
+                                  <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/20">
+                                    <AlertCircle className="w-4 h-4 text-red-400" />
+                                    <span className="text-xs font-semibold text-red-400">Your Answer</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Explanation for wrong answers */}
+                    {!isCorrect && !isSkipped && (
+                      <div className="mt-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                        <div className="flex items-start gap-2">
+                          <span className="text-blue-400">💡</span>
+                          <div>
+                            <p className="font-semibold text-blue-400 mb-1">Why this is incorrect:</p>
+                            <p className="text-sm text-gray-300">
+                              The correct answer is option {String.fromCharCode(65 + q.correctAnswer)}. 
+                              {q.isScenario && " This scenario-based question tests practical understanding of the concept."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                )
+              })}
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="mt-8 flex gap-4 justify-center sticky bottom-4">
+              <button
+                onClick={() => setShowReview(false)}
+                className="px-8 py-4 rounded-xl glass hover:bg-white/10 font-bold"
+              >
+                Back to Summary
+              </button>
+              <Link href="/results">
+                <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold">
+                  View Full Results
+                </button>
+              </Link>
+            </div>
+
+          </div>
+        </main>
+      )
+    }
     
     return (
       <main className="min-h-screen px-4 py-12">
@@ -622,11 +850,36 @@ export default function TechnicalRound() {
                 <p className="text-3xl font-bold">{formatTime(2700 - timeLeft)}</p>
               </div>
             </div>
-            <Link href="/results">
-              <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg">
-                View Detailed Results
+            
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="glass rounded-lg p-3 border border-green-500/30">
+                <p className="text-green-400 text-2xl font-bold">{score}</p>
+                <p className="text-xs text-gray-400">Correct</p>
+              </div>
+              <div className="glass rounded-lg p-3 border border-red-500/30">
+                <p className="text-red-400 text-2xl font-bold">{questions.length - score - skipped.size}</p>
+                <p className="text-xs text-gray-400">Wrong</p>
+              </div>
+              <div className="glass rounded-lg p-3 border border-yellow-500/30">
+                <p className="text-yellow-400 text-2xl font-bold">{Array.from(skipped).filter(id => answers[id] === undefined).length}</p>
+                <p className="text-xs text-gray-400">Skipped</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => setShowReview(true)}
+                className="w-full px-8 py-4 rounded-xl glass hover:bg-white/10 font-bold border-2 border-purple-500/50 hover:border-purple-500 transition-all"
+              >
+                📋 Review All Answers
               </button>
-            </Link>
+              <Link href="/results" className="w-full">
+                <button className="w-full px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg">
+                  View Detailed Results
+                </button>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </main>

@@ -183,9 +183,16 @@ export default function ResultsPage() {
                 <span className="text-gray-600">Not Started</span>
               )}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-1 mb-3">
               {technicalData ? `${technicalData.total - technicalData.score} incorrect` : 'Complete 50 questions'}
             </p>
+            {technicalData && (
+              <Link href="/rounds/technical#review">
+                <button className="w-full px-4 py-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-sm font-semibold transition-all border border-blue-500/30">
+                  📋 Review Answers
+                </button>
+              </Link>
+            )}
           </motion.div>
 
           <motion.div
